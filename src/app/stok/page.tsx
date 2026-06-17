@@ -41,7 +41,7 @@ export default function StokPage() {
     try {
       const res = await fetch('/api/products')
       const data = await res.json()
-      setProducts(data.filter((p: Product) => p.stock !== null))
+      setProducts(data.filter((p: Product) => p.stock != null))
     } finally {
       setLoading(false)
     }
@@ -161,7 +161,7 @@ export default function StokPage() {
                           </div>
                         ) : (
                           <button
-                            onClick={() => setEditingStock({ id: product.id, stock: String(product.stock) })}
+                            onClick={() => setEditingStock({ id: product.id, stock: String(product.stock ?? '') })}
                             className="touch-btn flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all"
                           >
                             <span className="text-white font-bold text-sm">{product.stock}</span>
@@ -174,7 +174,7 @@ export default function StokPage() {
                     </div>
 
                     {/* Low stock warning */}
-                    {product.stock !== null && product.stock <= 5 && product.stock > 0 && (
+                    {product.stock != null && product.stock <= 5 && product.stock > 0 && (
                       <div className="mt-2 flex items-center gap-2 text-orange-400 text-xs bg-orange-500/10 rounded-lg px-3 py-2">
                         ⚠️ Stok menipis! Segera lakukan restok.
                       </div>

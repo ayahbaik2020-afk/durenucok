@@ -1,28 +1,19 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaLibSql } from '@prisma/adapter-libsql'
-import path from 'path'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-function buildDbUrl(): string {
-  const envUrl = process.env.DATABASE_URL
-
-  // If it's a remote URL (Turso/LibSQL cloud), use as-is
-  if (envUrl && (envUrl.startsWith('libsql://') || envUrl.startsWith('https://'))) {
-    return envUrl
+function createPrismaClient() {
+  const connectionString = process.env.DATABASE_URL
+  if (!connectionString) {
+    throw new Error('DATABASE_URL is not defined in environment variables')
   }
 
-  // For local file: always build absolute path
-  const dbFile = path.resolve(process.cwd(), 'dev.db')
-  const normalized = dbFile.replace(/\\/g, '/')
-  return `file:///${normalized}`
-}
-
-function createPrismaClient() {
-  const url = buildDbUrl()
-  const adapter = new PrismaLibSql({ url })
+  const pool = new Pool({ connectionString })
+  const adapter = new PrismaPg(pool)
   return new PrismaClient({ adapter } as any)
 }
 

@@ -1,12 +1,18 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { PrismaClient } = require('@prisma/client')
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { PrismaLibSql } = require('@prisma/adapter-libsql')
+const { PrismaPg } = require('@prisma/adapter-pg')
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const path = require('path')
+const { Pool } = require('pg')
+require('dotenv').config()
 
-const dbPath = path.resolve(process.cwd(), 'dev.db').replace(/\\/g, '/')
-const adapter = new PrismaLibSql({ url: `file:///${dbPath}` })
+const connectionString = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL
+if (!connectionString) {
+  throw new Error('Please define DATABASE_URL or DIRECT_DATABASE_URL in .env')
+}
+
+const pool = new Pool({ connectionString })
+const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
 

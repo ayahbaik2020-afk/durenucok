@@ -13,7 +13,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const cartItem = items.find((i) => i.product.id === product.id)
   const inCart = cartItem ? cartItem.qty : 0
-  const isOutOfStock = product.stock !== null && product.stock <= 0
+  const isOutOfStock = product.stock != null && product.stock <= 0
 
   return (
     <button
@@ -60,7 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <p className="text-gray-500 text-xs mb-2">{product.category.emoji} {product.category.name}</p>
 
         {/* Stock indicator */}
-        {product.stock !== null && (
+        {product.stock != null && (
           <p className={`text-xs mb-2 ${product.stock <= 5 ? 'text-red-400' : 'text-gray-500'}`}>
             Stok: {product.stock}
           </p>
