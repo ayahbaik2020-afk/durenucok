@@ -29,6 +29,7 @@ export async function PUT(
       description: body.description,
       price: body.price,
       emoji: body.emoji,
+      image: body.image,
       categoryId: body.categoryId,
       stock: body.stock ?? null,
       isActive: body.isActive,

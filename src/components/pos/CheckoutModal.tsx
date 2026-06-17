@@ -100,8 +100,19 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
               {/* Order summary */}
               <div className="bg-gray-800/60 rounded-xl p-4 space-y-2">
                 {items.map((item) => (
-                  <div key={item.product.id} className="flex justify-between text-sm">
-                    <span className="text-gray-300">{item.product.emoji} {item.product.name} ×{item.qty}</span>
+                  <div key={item.product.id} className="flex justify-between items-center text-sm gap-4">
+                    <span className="text-gray-300 flex items-center gap-1.5 min-w-0">
+                      {item.product.image ? (
+                        <img
+                          src={item.product.image}
+                          alt={item.product.name}
+                          className="w-5 h-5 object-cover rounded bg-gray-800 flex-shrink-0"
+                        />
+                      ) : (
+                        <span className="flex-shrink-0">{item.product.emoji}</span>
+                      )}
+                      <span className="truncate">{item.product.name} ×{item.qty}</span>
+                    </span>
                     <span className="text-white font-medium">{formatRupiah(item.subtotal)}</span>
                   </div>
                 ))}

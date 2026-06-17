@@ -16,8 +16,18 @@ export default function CartItemRow({ item }: CartItemRowProps) {
   return (
     <div className="animate-slide-up border-b border-gray-800/60 pb-3 mb-3 last:border-0">
       <div className="flex items-start gap-2">
-        {/* Emoji */}
-        <span className="text-2xl mt-0.5">{item.product.emoji}</span>
+        {/* Image / Emoji */}
+        <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-gray-800 border border-gray-700 overflow-hidden">
+          {item.product.image ? (
+            <img
+              src={item.product.image}
+              alt={item.product.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-2xl">{item.product.emoji}</span>
+          )}
+        </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">

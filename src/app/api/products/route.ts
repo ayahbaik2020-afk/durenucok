@@ -5,13 +5,14 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const categoryId = searchParams.get('categoryId')
   const search = searchParams.get('search')
+  const includeInactive = searchParams.get('includeInactive') === 'true'
 
   const products = await prisma.product.findMany({
     where: {
-      isActive: true,
+      ...(!includeInactive ? { isActive: true } : {}),
       ...(categoryId ? { categoryId: parseInt(categoryId) } : {}),
       ...(search
-        ? { name: { contains: search } }
+        ? { name: { contains: search, mode: 'insensitive' } }
         : {}),
     },
     include: { category: true },
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
       description: body.description,
       price: body.price,
       emoji: body.emoji || '🍧',
+      image: body.image || null,
       categoryId: body.categoryId,
       stock: body.stock ?? null,
     },

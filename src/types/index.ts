@@ -11,6 +11,7 @@ export interface Product {
   description?: string | null
   price: number
   emoji: string
+  image?: string | null
   category: Category
   categoryId: number
   stock?: number | null

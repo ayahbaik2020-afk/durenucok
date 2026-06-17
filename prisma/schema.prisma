@@ -42,6 +42,7 @@ model Product {
   description      String?
   price            Float
   emoji            String            @default("🍧")
+  image            String?
   category         Category          @relation(fields: [categoryId], references: [id])
   categoryId       Int
   stock            Int?

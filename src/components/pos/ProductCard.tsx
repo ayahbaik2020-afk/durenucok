@@ -46,9 +46,17 @@ export default function ProductCard({ product }: ProductCardProps) {
       />
 
       <div className="p-3">
-        {/* Emoji */}
-        <div className="text-4xl mb-2 text-center group-hover:scale-110 transition-transform duration-200">
-          {product.emoji}
+        {/* Image / Emoji */}
+        <div className="h-16 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-200">
+          {product.image ? (
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-16 h-16 object-cover rounded-xl shadow-md bg-gray-800"
+            />
+          ) : (
+            <span className="text-4xl">{product.emoji}</span>
+          )}
         </div>
 
         {/* Name */}
