@@ -80,18 +80,18 @@ export const useCartStore = create<CartStore>((set, get) => ({
   clearCart: () => set({ items: [] }),
 
   getSubtotal: () => {
-    return get().items.reduce((sum, i) => sum + i.qty * i.product.price, 0)
+    return get().items.reduce((sum: number, i) => sum + i.qty * i.product.price, 0)
   },
 
   getTotalDiscount: () => {
-    return get().items.reduce((sum, i) => sum + i.discount, 0)
+    return get().items.reduce((sum: number, i) => sum + i.discount, 0)
   },
 
   getTotal: () => {
-    return get().items.reduce((sum, i) => sum + i.subtotal, 0)
+    return get().items.reduce((sum: number, i) => sum + i.subtotal, 0)
   },
 
   getItemCount: () => {
-    return get().items.reduce((sum, i) => sum + i.qty, 0)
+    return get().items.reduce((sum: number, i) => sum + i.qty, 0)
   },
 }))

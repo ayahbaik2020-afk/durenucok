@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     include: { items: true, cashier: true },
   })
 
-  const totalRevenue = transactions.reduce((sum, t) => sum + t.total, 0)
+  const totalRevenue = transactions.reduce((sum: number, t) => sum + t.total, 0)
   const totalTransactions = transactions.length
 
   // Top products
