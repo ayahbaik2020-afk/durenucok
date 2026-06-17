@@ -37,7 +37,7 @@ export default function HistoryPage() {
     }
   }
 
-  const totalRevenue = transactions.reduce((s: number, t) => s + t.total, 0)
+  const totalRevenue = transactions.reduce((s: number, t: any) => s + t.total, 0)
 
   return (
     <div className="h-screen flex flex-col bg-gray-950">
