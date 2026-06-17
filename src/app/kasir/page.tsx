@@ -119,7 +119,7 @@ export default function KasirPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 mb-4 shadow-xl glow-amber">
             <span className="text-4xl">🍧</span>
           </div>
-          <h1 className="text-3xl font-bold text-white">DurenUcok</h1>
+          <h1 className="text-3xl font-bold text-gray-50">DurenUcok</h1>
           <p className="text-amber-400/80 text-sm mt-1">Point of Sale — Olahan Durian</p>
         </div>
 
@@ -129,7 +129,7 @@ export default function KasirPage() {
           {/* STEP 1: Pilih Kasir */}
           {step === 'select' && (
             <div className="animate-scale-in">
-              <h2 className="text-lg font-semibold text-white mb-1">Pilih Kasir</h2>
+              <h2 className="text-lg font-semibold text-gray-50 mb-1">Pilih Kasir</h2>
               <p className="text-gray-400 text-sm mb-5">Siapa yang bertugas hari ini?</p>
               <div className="space-y-3">
                 {cashiers.map((c) => (
@@ -142,7 +142,7 @@ export default function KasirPage() {
                       {c.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="text-left">
-                      <p className="font-semibold text-white">{c.name}</p>
+                      <p className="font-semibold text-gray-100">{c.name}</p>
                       <p className="text-gray-400 text-xs">Kasir</p>
                     </div>
                     <svg className="ml-auto text-gray-500 group-hover:text-amber-400 transition-colors" width="20" height="20" fill="none" viewBox="0 0 24 24">
@@ -163,7 +163,7 @@ export default function KasirPage() {
           {/* STEP 2: Input PIN */}
           {step === 'pin' && selectedCashier && (
             <div className="animate-scale-in">
-              <button onClick={() => setStep('select')} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-5 text-sm">
+              <button onClick={() => setStep('select')} className="flex items-center gap-2 text-gray-400 hover:text-gray-100 transition-colors mb-5 text-sm">
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 Ganti Kasir
               </button>
@@ -172,7 +172,7 @@ export default function KasirPage() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-2xl font-bold text-white mx-auto mb-3 shadow-lg">
                   {selectedCashier.name.charAt(0).toUpperCase()}
                 </div>
-                <h2 className="text-lg font-semibold text-white">Halo, {selectedCashier.name}!</h2>
+                <h2 className="text-lg font-semibold text-gray-50">Halo, {selectedCashier.name}!</h2>
                 <p className="text-gray-400 text-sm">Masukkan PIN kamu</p>
               </div>
 
@@ -206,7 +206,7 @@ export default function KasirPage() {
                         ? 'invisible'
                         : k === '⌫'
                         ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                        : 'bg-gray-800 hover:bg-amber-500/30 hover:text-amber-400 text-white border border-gray-700 hover:border-amber-500/50'
+                        : 'bg-gray-800 hover:bg-amber-500/30 hover:text-amber-400 text-gray-100 border border-gray-700 hover:border-amber-500/50'
                     }`}
                   >
                     {k}
@@ -223,7 +223,7 @@ export default function KasirPage() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-3xl mx-auto mb-3 shadow-lg">
                   💰
                 </div>
-                <h2 className="text-lg font-semibold text-white">Modal Awal Cash</h2>
+                <h2 className="text-lg font-semibold text-gray-50">Modal Awal Cash</h2>
                 <p className="text-gray-400 text-sm">Berapa uang di laci kasir saat ini?</p>
               </div>
 
@@ -236,7 +236,7 @@ export default function KasirPage() {
                     value={startCash}
                     onChange={(e) => setStartCash(e.target.value)}
                     placeholder="0"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-12 pr-4 py-4 text-white text-lg font-semibold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-12 pr-4 py-4 text-gray-100 text-lg font-semibold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                     onKeyDown={(e) => e.key === 'Enter' && handleStartShift()}
                   />
                 </div>

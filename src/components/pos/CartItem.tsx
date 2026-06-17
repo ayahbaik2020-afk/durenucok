@@ -31,7 +31,7 @@ export default function CartItemRow({ item }: CartItemRowProps) {
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <p className="text-white text-sm font-medium leading-tight truncate">{item.product.name}</p>
+          <p className="text-gray-100 text-sm font-medium leading-tight truncate">{item.product.name}</p>
           <p className="text-gray-500 text-xs mt-0.5">{formatRupiah(item.product.price)} / pcs</p>
 
           {/* Qty controls */}
@@ -42,7 +42,7 @@ export default function CartItemRow({ item }: CartItemRowProps) {
             >
               −
             </button>
-            <span className="text-white font-bold text-sm w-6 text-center">{item.qty}</span>
+            <span className="text-gray-100 font-bold text-sm w-6 text-center">{item.qty}</span>
             <button
               onClick={() => updateQty(item.product.id, item.qty + 1)}
               className="touch-btn w-8 h-8 rounded-lg bg-gray-800 hover:bg-amber-500/20 hover:text-amber-400 text-gray-300 flex items-center justify-center font-bold transition-all border border-gray-700"
@@ -56,7 +56,7 @@ export default function CartItemRow({ item }: CartItemRowProps) {
               className={`touch-btn ml-1 text-xs px-2 py-1 rounded-lg border transition-all ${
                 item.discount > 0
                   ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                  : 'bg-gray-800 text-gray-500 border-gray-700 hover:text-white'
+                  : 'bg-gray-800 text-gray-500 border-gray-700 hover:text-gray-100'
               }`}
             >
               %
@@ -73,7 +73,7 @@ export default function CartItemRow({ item }: CartItemRowProps) {
                   value={item.discount || ''}
                   onChange={(e) => updateDiscount(item.product.id, parseFloat(e.target.value) || 0)}
                   placeholder="0"
-                  className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-white text-xs focus:outline-none focus:border-amber-500"
+                  className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-gray-100 text-xs focus:outline-none focus:border-amber-500"
                 />
               </div>
             </div>

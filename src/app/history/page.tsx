@@ -48,14 +48,14 @@ export default function HistoryPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
             <div>
-              <h1 className="text-2xl font-bold text-white">Riwayat Transaksi</h1>
+              <h1 className="text-2xl font-bold text-gray-50">Riwayat Transaksi</h1>
               <p className="text-gray-400 text-sm">{transactions.length} transaksi • {formatRupiah(totalRevenue)}</p>
             </div>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 text-sm focus:outline-none focus:border-amber-500"
             />
           </div>
 
@@ -63,7 +63,7 @@ export default function HistoryPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="glass-card rounded-xl p-4">
               <p className="text-gray-400 text-xs mb-1">Total Transaksi</p>
-              <p className="text-2xl font-bold text-white">{transactions.length}</p>
+              <p className="text-2xl font-bold text-gray-50">{transactions.length}</p>
             </div>
             <div className="glass-card rounded-xl p-4">
               <p className="text-gray-400 text-xs mb-1">Total Pendapatan</p>
@@ -98,9 +98,9 @@ export default function HistoryPage() {
                     onClick={() => setExpandedId(expandedId === tx.id ? null : tx.id)}
                   >
                     <div className="flex items-center gap-3 text-left">
-                      <span className="text-2xl">{METHOD_ICONS[tx.paymentMethod] || '💳'}</span>
+                       <span className="text-2xl">{METHOD_ICONS[tx.paymentMethod] || '💳'}</span>
                       <div>
-                        <p className="text-white font-semibold text-sm">{tx.invoiceNumber}</p>
+                        <p className="text-gray-100 font-semibold text-sm">{tx.invoiceNumber}</p>
                         <p className="text-gray-400 text-xs">{formatDate(tx.createdAt)} • {tx.cashier?.name}</p>
                       </div>
                     </div>
@@ -122,20 +122,20 @@ export default function HistoryPage() {
                         {tx.items.map((item) => (
                           <div key={item.id} className="flex justify-between text-sm">
                             <span className="text-gray-300">{item.productName} ×{item.qty}</span>
-                            <span className="text-white">{formatRupiah(item.subtotal)}</span>
+                            <span className="text-gray-100">{formatRupiah(item.subtotal)}</span>
                           </div>
                         ))}
                       </div>
                       <div className="border-t border-gray-700 pt-3 grid grid-cols-2 gap-2 text-xs text-gray-400">
                         <div>
                           <span>Pembayaran: </span>
-                          <span className="text-white font-medium">{METHOD_ICONS[tx.paymentMethod]} {tx.paymentMethod}</span>
+                          <span className="text-gray-100 font-medium">{METHOD_ICONS[tx.paymentMethod]} {tx.paymentMethod}</span>
                         </div>
                         {tx.paymentMethod === 'CASH' && (
                           <>
                             <div>
                               <span>Dibayar: </span>
-                              <span className="text-white font-medium">{formatRupiah(tx.amountPaid)}</span>
+                              <span className="text-gray-100 font-medium">{formatRupiah(tx.amountPaid)}</span>
                             </div>
                             <div>
                               <span>Kembalian: </span>

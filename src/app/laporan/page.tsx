@@ -43,14 +43,14 @@ export default function LaporanPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
             <div>
-              <h1 className="text-2xl font-bold text-white">Laporan Harian</h1>
+              <h1 className="text-2xl font-bold text-gray-50">Laporan Harian</h1>
               <p className="text-gray-400 text-sm">{formatDateShort(selectedDate)}</p>
             </div>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 text-sm focus:outline-none focus:border-amber-500"
             />
           </div>
 
@@ -76,7 +76,7 @@ export default function LaporanPage() {
                     <span className="text-2xl">🧾</span>
                     <span className="text-gray-400 text-xs font-medium">Transaksi</span>
                   </div>
-                  <p className="text-2xl font-bold text-white">{report.totalTransactions}</p>
+                  <p className="text-2xl font-bold text-gray-50">{report.totalTransactions}</p>
                 </div>
                 <div className="glass-card rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -99,7 +99,7 @@ export default function LaporanPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Top Products */}
                 <div className="glass-card rounded-xl p-5">
-                  <h2 className="text-white font-bold mb-4 flex items-center gap-2">
+                  <h2 className="text-gray-50 font-bold mb-4 flex items-center gap-2">
                     🏆 Produk Terlaris
                   </h2>
                   {report.topProducts.length === 0 ? (
@@ -135,7 +135,7 @@ export default function LaporanPage() {
                 <div className="space-y-4">
                   {/* Payment breakdown */}
                   <div className="glass-card rounded-xl p-5">
-                    <h2 className="text-white font-bold mb-4 flex items-center gap-2">
+                    <h2 className="text-gray-50 font-bold mb-4 flex items-center gap-2">
                       💳 Metode Pembayaran
                     </h2>
                     {report.paymentBreakdown.length === 0 ? (
@@ -147,7 +147,7 @@ export default function LaporanPage() {
                             <div className="flex items-center gap-2">
                               <span className="text-xl">{METHOD_ICONS[pb.method] || '💳'}</span>
                               <div>
-                                <p className="text-white text-sm font-medium">{pb.method}</p>
+                                <p className="text-gray-100 text-sm font-medium">{pb.method}</p>
                                 <p className="text-gray-500 text-xs">{pb.count} transaksi</p>
                               </div>
                             </div>
@@ -160,7 +160,7 @@ export default function LaporanPage() {
 
                   {/* Per cashier */}
                   <div className="glass-card rounded-xl p-5">
-                    <h2 className="text-white font-bold mb-4 flex items-center gap-2">
+                    <h2 className="text-gray-50 font-bold mb-4 flex items-center gap-2">
                       👤 Per Kasir
                     </h2>
                     {report.perCashier.length === 0 ? (
@@ -174,7 +174,7 @@ export default function LaporanPage() {
                                 {c.cashierName.charAt(0)}
                               </div>
                               <div>
-                                <p className="text-white text-sm font-medium">{c.cashierName}</p>
+                                <p className="text-gray-100 text-sm font-medium">{c.cashierName}</p>
                                 <p className="text-gray-500 text-xs">{c.totalTransactions} transaksi</p>
                               </div>
                             </div>

@@ -88,10 +88,10 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-gray-800 sticky top-0 bg-gray-900 rounded-t-3xl sm:rounded-t-2xl">
               <div>
-                <h2 className="text-xl font-bold text-white">Checkout</h2>
+                <h2 className="text-xl font-bold text-gray-50">Checkout</h2>
                 <p className="text-gray-400 text-sm">{items.length} item — {formatRupiah(total)}</p>
               </div>
-              <button onClick={onClose} className="touch-btn w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-all">
+              <button onClick={onClose} className="touch-btn w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-gray-100 transition-all">
                 ✕
               </button>
             </div>
@@ -113,7 +113,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                       )}
                       <span className="truncate">{item.product.name} ×{item.qty}</span>
                     </span>
-                    <span className="text-white font-medium">{formatRupiah(item.subtotal)}</span>
+                    <span className="text-gray-100 font-medium">{formatRupiah(item.subtotal)}</span>
                   </div>
                 ))}
                 <div className="border-t border-gray-700 pt-2 mt-2">
@@ -130,7 +130,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-lg mt-1">
-                    <span className="text-white">Total</span>
+                    <span className="text-gray-50">Total</span>
                     <span className="text-amber-400">{formatRupiah(total)}</span>
                   </div>
                 </div>
@@ -177,8 +177,8 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                 <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 animate-fade-in">
                   <p className="text-blue-400 font-semibold text-sm">Rekening Transfer</p>
                   <div className="mt-2 space-y-1">
-                    <p className="text-white text-sm">BCA: <span className="font-mono font-bold">1234567890</span></p>
-                    <p className="text-white text-sm">a.n. <span className="font-medium">Toko DurenUcok</span></p>
+                    <p className="text-gray-200 text-sm">BCA: <span className="font-mono font-bold">1234567890</span></p>
+                    <p className="text-gray-200 text-sm">a.n. <span className="font-medium">Toko DurenUcok</span></p>
                     <p className="text-amber-400 font-bold">{formatRupiah(total)}</p>
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                       onChange={(e) => setAmountPaid(e.target.value)}
                       placeholder="0"
                       autoFocus
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-12 pr-4 py-3.5 text-white text-lg font-bold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-12 pr-4 py-3.5 text-gray-100 text-lg font-bold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                     />
                   </div>
 
@@ -258,7 +258,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-5xl mx-auto mb-4 shadow-xl">
               ✅
             </div>
-            <h2 className="text-2xl font-bold text-white mb-1">Transaksi Berhasil!</h2>
+            <h2 className="text-2xl font-bold text-gray-50 mb-1">Transaksi Berhasil!</h2>
             <p className="text-gray-400 text-sm mb-6">{invoiceNumber}</p>
 
             {paymentMethod === 'CASH' && lastChange > 0 && (

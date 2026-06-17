@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSessionStore } from '@/store/sessionStore'
@@ -18,6 +19,25 @@ export default function AppNavbar() {
   const { cashier, session, clearSession } = useSessionStore()
   const { getItemCount } = useCartStore()
   const cartCount = getItemCount()
+
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains('dark')
+    setTheme(isDark ? 'dark' : 'light')
+  }, [])
+
+  const toggleTheme = () => {
+    if (theme === 'dark') {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+      setTheme('light')
+    } else {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+      setTheme('dark')
+    }
+  }
 
   async function handleCloseSession() {
     if (!session) return
@@ -41,7 +61,7 @@ export default function AppNavbar() {
           🍧
         </div>
         <div>
-          <span className="font-bold text-white text-lg leading-none">DurenUcok</span>
+          <span className="font-bold text-gray-50 text-lg leading-none">DurenUcok</span>
           <span className="hidden sm:block text-gray-500 text-xs">POS System</span>
         </div>
       </div>
@@ -81,11 +101,18 @@ export default function AppNavbar() {
               {cashier.name.charAt(0)}
             </div>
             <div className="text-xs">
-              <p className="text-white font-medium">{cashier.name}</p>
+              <p className="text-gray-100 font-medium">{cashier.name}</p>
               <p className="text-gray-500">Kasir Aktif</p>
             </div>
           </div>
         )}
+        <button
+          onClick={toggleTheme}
+          className="touch-btn w-9 h-9 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-300 hover:text-white flex items-center justify-center border border-gray-700 transition-colors"
+          title={theme === 'dark' ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'}
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
         <button
           onClick={handleCloseSession}
           className="touch-btn flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 text-sm font-medium border border-red-500/20 transition-all"

@@ -77,10 +77,10 @@ export default function POSPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cari produk..."
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">✕</button>
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-100">✕</button>
               )}
             </div>
 
@@ -138,7 +138,7 @@ export default function POSPage() {
           {/* Cart Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-800">
             <div>
-              <h2 className="font-bold text-white text-lg">Keranjang</h2>
+              <h2 className="font-bold text-gray-50 text-lg">Keranjang</h2>
               {itemCount > 0 && <p className="text-gray-400 text-xs">{itemCount} item</p>}
             </div>
             <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export default function POSPage() {
               )}
               <button
                 onClick={() => setShowCart(false)}
-                className="lg:hidden touch-btn w-8 h-8 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white"
+                 className="lg:hidden touch-btn w-8 h-8 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:text-gray-100"
               >
                 ✕
               </button>
@@ -182,7 +182,7 @@ export default function POSPage() {
                   <span className="text-gray-300">{formatRupiah(getTotal())}</span>
                 </div>
                 <div className="flex justify-between text-xl font-bold mt-2 pt-2 border-t border-gray-700">
-                  <span className="text-white">Total</span>
+                   <span className="text-gray-50">Total</span>
                   <span className="text-amber-400">{formatRupiah(total)}</span>
                 </div>
               </div>

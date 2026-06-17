@@ -329,7 +329,7 @@ export default function StokPage() {
           {/* Header */}
           <div className="flex items-center justify-between pt-2">
             <div>
-              <h1 className="text-2xl font-bold text-white">Kelola Produk & Stok</h1>
+              <h1 className="text-2xl font-bold text-gray-50">Kelola Produk & Stok</h1>
               <p className="text-gray-400 text-sm">Kelola informasi produk, persediaan, dan pencatatan produk rusak/kadaluarsa.</p>
             </div>
             <div className="flex gap-2">
@@ -358,7 +358,7 @@ export default function StokPage() {
                 placeholder="Cari nama produk..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-9 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-9 pr-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-amber-500 transition-colors"
               />
             </div>
 
@@ -366,7 +366,7 @@ export default function StokPage() {
             <select
               value={selectedCatId}
               onChange={(e) => setSelectedCatId(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value))}
-              className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors"
+              className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-amber-500 transition-colors"
             >
               <option value="ALL">Semua Kategori</option>
               {categories.map((cat) => (
@@ -380,7 +380,7 @@ export default function StokPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors"
+              className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-amber-500 transition-colors"
             >
               <option value="ALL">Semua Status (Aktif & Nonaktif)</option>
               <option value="ACTIVE">Hanya Status Aktif</option>
@@ -430,7 +430,7 @@ export default function StokPage() {
                       
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="text-white font-semibold text-sm truncate">{product.name}</p>
+                          <p className="text-gray-100 font-semibold text-sm truncate">{product.name}</p>
                           {isInactive && (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
                               NONAKTIF
@@ -459,7 +459,7 @@ export default function StokPage() {
                         <div className="flex items-center bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
                           <button
                             onClick={() => handleInlineStockUpdate(product.id, Math.max(0, (product.stock || 0) - 1))}
-                            className="px-2.5 py-1.5 hover:bg-gray-800 text-gray-400 hover:text-white transition-colors font-bold text-sm"
+                            className="px-2.5 py-1.5 hover:bg-gray-800 text-gray-400 hover:text-gray-100 transition-colors font-bold text-sm"
                           >
                             -
                           </button>
@@ -490,12 +490,12 @@ export default function StokPage() {
                                 e.currentTarget.blur()
                               }
                             }}
-                            className="w-12 bg-transparent text-white text-sm font-semibold text-center focus:outline-none focus:bg-gray-800/80 py-1"
+                            className="w-12 bg-transparent text-gray-100 text-sm font-semibold text-center focus:outline-none focus:bg-gray-800/80 py-1"
                           />
 
                           <button
                             onClick={() => handleInlineStockUpdate(product.id, (product.stock || 0) + 1)}
-                            className="px-2.5 py-1.5 hover:bg-gray-800 text-gray-400 hover:text-white transition-colors font-bold text-sm"
+                            className="px-2.5 py-1.5 hover:bg-gray-800 text-gray-400 hover:text-gray-100 transition-colors font-bold text-sm"
                           >
                             +
                           </button>
@@ -525,7 +525,7 @@ export default function StokPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={() => !submittingProduct && setShowProductModal(false)} />
           <div className="relative w-full max-w-lg bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden p-6 animate-scale-in max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-white mb-5">
+            <h2 className="text-xl font-bold text-gray-50 mb-5">
               {isEditMode ? '✏️ Edit Produk' : '➕ Tambah Produk'}
             </h2>
 
@@ -539,7 +539,7 @@ export default function StokPage() {
                   value={prodName}
                   onChange={(e) => setProdName(e.target.value)}
                   placeholder="Contoh: Pancake Durian Jumbo"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 text-sm focus:outline-none focus:border-amber-500"
                 />
               </div>
 
@@ -550,7 +550,7 @@ export default function StokPage() {
                   <select
                     value={prodCategoryId}
                     onChange={(e) => setProdCategoryId(parseInt(e.target.value))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 text-sm focus:outline-none focus:border-amber-500"
                   >
                     {categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>
@@ -570,7 +570,7 @@ export default function StokPage() {
                     value={prodPrice || ''}
                     onChange={(e) => setProdPrice(parseInt(e.target.value) || 0)}
                     placeholder="Harga"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 text-sm focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
@@ -627,7 +627,7 @@ export default function StokPage() {
                         value={prodEmoji}
                         onChange={(e) => setProdEmoji(e.target.value)}
                         placeholder="Kustom..."
-                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500 text-center"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-amber-500 text-center"
                       />
                     </div>
                     <div className="grid grid-cols-8 gap-2 bg-gray-950 p-3 rounded-xl border border-gray-800 max-h-[100px] overflow-y-auto">

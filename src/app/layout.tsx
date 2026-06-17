@@ -21,6 +21,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${poppins.variable} h-full`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const theme = localStorage.getItem('theme');
+                if (theme === 'light') {
+                  document.documentElement.classList.remove('dark');
+                } else {
+                  document.documentElement.classList.add('dark');
+                }
+              })()
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-full bg-gray-950 text-gray-100 font-poppins">
         {children}
       </body>
