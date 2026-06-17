@@ -218,50 +218,66 @@ export default function LaporanPage() {
                     🚀 Kirim Laporan
                   </h3>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {/* Send Email Form */}
-                    <form onSubmit={handleSendEmail} className="flex gap-2">
-                      <div className="relative flex-1">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">📧</span>
-                        <input
-                          type="email"
-                          required
-                          placeholder="Kirim laporan ke email..."
-                          value={emailDest}
-                          onChange={(e) => setEmailDest(e.target.value)}
-                          className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-8 pr-3 py-2 text-gray-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={sendingEmail || !emailDest}
-                        className="touch-btn bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0"
-                      >
-                        {sendingEmail ? 'Mengirim...' : 'Kirim'}
-                      </button>
-                    </form>
+                    <div className="space-y-1">
+                      <label className="text-gray-400 text-xs font-medium">
+                        Kirim laporan ke email:
+                      </label>
+                      <form onSubmit={handleSendEmail} className="flex gap-2">
+                        <div className="relative flex-1">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">📧</span>
+                          <input
+                            type="email"
+                            required
+                            placeholder="nama@email.com"
+                            value={emailDest}
+                            onChange={(e) => setEmailDest(e.target.value)}
+                            className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-8 pr-3 py-2 text-gray-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={sendingEmail || !emailDest}
+                          className="touch-btn bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0"
+                        >
+                          {sendingEmail ? 'Mengirim...' : 'Kirim'}
+                        </button>
+                      </form>
+                    </div>
+
+                    <div className="flex items-center my-1.5">
+                      <div className="flex-1 h-px bg-gray-800"></div>
+                      <span className="px-2.5 text-[10px] text-gray-500 uppercase tracking-wider font-semibold">atau</span>
+                      <div className="flex-1 h-px bg-gray-800"></div>
+                    </div>
 
                     {/* Send WhatsApp Form */}
-                    <form onSubmit={handleSendWhatsApp} className="flex gap-2">
-                      <div className="relative flex-1">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">💬</span>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Nomor WhatsApp (e.g. 0812...)"
-                          value={waDest}
-                          onChange={(e) => setWaDest(e.target.value)}
-                          className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-8 pr-3 py-2 text-gray-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={!waDest}
-                        className="touch-btn bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0"
-                      >
-                        Kirim WA
-                      </button>
-                    </form>
+                    <div className="space-y-1">
+                      <label className="text-gray-400 text-xs font-medium">
+                        Nomor WhatsApp:
+                      </label>
+                      <form onSubmit={handleSendWhatsApp} className="flex gap-2">
+                        <div className="relative flex-1">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">💬</span>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Contoh: 08123456789"
+                            value={waDest}
+                            onChange={(e) => setWaDest(e.target.value)}
+                            className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-8 pr-3 py-2 text-gray-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={!waDest}
+                          className="touch-btn bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0"
+                        >
+                          Kirim WA
+                        </button>
+                      </form>
+                    </div>
 
                     {/* Status feedback alerts */}
                     {emailSentStatus === 'SUCCESS' && (
