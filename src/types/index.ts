@@ -74,6 +74,7 @@ export interface Transaction {
 
 export interface DailyReport {
   date: string
+  dateLabel?: string
   totalTransactions: number
   totalRevenue: number
   topProducts: { name: string; emoji: string; totalQty: number; totalRevenue: number }[]

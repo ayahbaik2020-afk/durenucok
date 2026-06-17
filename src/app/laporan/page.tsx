@@ -17,6 +17,7 @@ export default function LaporanPage() {
   const [report, setReport] = useState<DailyReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10))
+  const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily')
 
   // Send Report States
   const [emailDest, setEmailDest] = useState('')
@@ -25,44 +26,15 @@ export default function LaporanPage() {
   const [emailSentStatus, setEmailSentStatus] = useState<'IDLE' | 'SUCCESS' | 'ERROR'>('IDLE')
   const [emailSimulated, setEmailSimulated] = useState(false)
 
-  // Seed Demo States
-  const [seedingDemo, setSeedingDemo] = useState(false)
-  const [seedMessage, setSeedMessage] = useState('')
-
-  async function handleSeedDemo() {
-    setSeedingDemo(true)
-    setSeedMessage('')
-    try {
-      const res = await fetch(`/api/reports/seed-dummy?date=${selectedDate}`, {
-        method: 'POST',
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setSeedMessage('✅ ' + data.message)
-        fetchReport() // Refresh report data!
-      } else {
-        setSeedMessage('❌ ' + (data.error || 'Gagal membuat data demo'))
-      }
-    } catch {
-      setSeedMessage('❌ Terjadi kesalahan saat membuat data demo')
-    } finally {
-      setSeedingDemo(false)
-      // Auto clear message after 5 seconds
-      setTimeout(() => {
-        setSeedMessage('')
-      }, 5000)
-    }
-  }
-
   useEffect(() => {
     if (!isLoggedIn()) { router.replace('/kasir'); return }
     fetchReport()
-  }, [selectedDate])
+  }, [selectedDate, period])
 
   async function fetchReport() {
     setLoading(true)
     try {
-      const res = await fetch(`/api/reports/daily?date=${selectedDate}`)
+      const res = await fetch(`/api/reports?date=${selectedDate}&period=${period}`)
       setReport(await res.json())
     } finally {
       setLoading(false)
@@ -74,7 +46,7 @@ export default function LaporanPage() {
 
     // 1. Sheet Ringkasan
     const ringkasanData = [
-      { Kategori: 'Tanggal Laporan', Nilai: formatDateShort(selectedDate) },
+      { Kategori: 'Periode Laporan', Nilai: report.dateLabel || formatDateShort(selectedDate) },
       { Kategori: 'Total Pendapatan (Rp)', Nilai: report.totalRevenue },
       { Kategori: 'Total Transaksi', Nilai: report.totalTransactions },
       { Kategori: 'Rata-rata Pendapatan / Transaksi (Rp)', Nilai: report.totalTransactions ? report.totalRevenue / report.totalTransactions : 0 },
@@ -115,7 +87,8 @@ export default function LaporanPage() {
     XLSX.utils.book_append_sheet(wb, wsKasir, 'Kinerja Kasir')
 
     // Write file
-    XLSX.writeFile(wb, `Laporan_Harian_DurenUcok_${selectedDate}.xlsx`)
+    const filenameLabel = period === 'weekly' ? 'Mingguan' : period === 'monthly' ? 'Bulanan' : 'Harian'
+    XLSX.writeFile(wb, `Laporan_${filenameLabel}_DurenUcok_${selectedDate}.xlsx`)
   }
 
   const handleExportPDF = () => {
@@ -135,7 +108,7 @@ export default function LaporanPage() {
         body: JSON.stringify({
           email: emailDest,
           reportData: report,
-          date: formatDateShort(selectedDate),
+          date: report.dateLabel || formatDateShort(selectedDate),
         }),
       })
 
@@ -170,7 +143,8 @@ export default function LaporanPage() {
       phone = '62' + phone
     }
 
-    const reportText = `*LAPORAN HARIAN DURENUCOK*\nTanggal: ${formatDateShort(selectedDate)}\n\n*Ringkasan Penjualan:*\n• Total Omset: ${formatRupiah(report.totalRevenue)}\n• Total Transaksi: ${report.totalTransactions}\n• Rata-rata / Transaksi: ${formatRupiah(report.totalTransactions ? report.totalRevenue / report.totalTransactions : 0)}\n\n*Metode Pembayaran:*\n${report.paymentBreakdown.map(pb => `• ${pb.method}: ${pb.count}x (${formatRupiah(pb.total)})`).join('\n')}\n\n*Kinerja Kasir:*\n${report.perCashier.map(c => `• ${c.cashierName}: ${c.totalTransactions}x (${formatRupiah(c.totalRevenue)})`).join('\n')}\n\n*Produk Terlaris:*\n${report.topProducts.map((p, idx) => `${idx + 1}. ${p.name} (${p.totalQty}x)`).join('\n')}\n\n_Dikirim otomatis dari POS DurenUcok._`
+    const reportLabel = period === 'weekly' ? 'MINGGUAN' : period === 'monthly' ? 'BULANAN' : 'HARIAN'
+    const reportText = `*LAPORAN ${reportLabel} DURENUCOK*\nPeriode: ${report.dateLabel || formatDateShort(selectedDate)}\n\n*Ringkasan Penjualan:*\n• Total Omset: ${formatRupiah(report.totalRevenue)}\n• Total Transaksi: ${report.totalTransactions}\n• Rata-rata / Transaksi: ${formatRupiah(report.totalTransactions ? report.totalRevenue / report.totalTransactions : 0)}\n\n*Metode Pembayaran:*\n${report.paymentBreakdown.map(pb => `• ${pb.method}: ${pb.count}x (${formatRupiah(pb.total)})`).join('\n')}\n\n*Kinerja Kasir:*\n${report.perCashier.map(c => `• ${c.cashierName}: ${c.totalTransactions}x (${formatRupiah(c.totalRevenue)})`).join('\n')}\n\n*Produk Terlaris:*\n${report.topProducts.map((p, idx) => `${idx + 1}. ${p.name} (${p.totalQty}x)`).join('\n')}\n\n_Dikirim otomatis dari POS DurenUcok._`
 
     const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(reportText)}`
     window.open(url, '_blank')
@@ -187,32 +161,36 @@ export default function LaporanPage() {
           {/* Print Only Header */}
           <div className="hidden print:block mb-6 pb-4 border-b border-gray-300 text-black">
             <h1 className="text-2xl font-bold">🍧 DurenUcok POS System</h1>
-            <p className="text-sm font-semibold">Laporan Omset Penjualan Harian</p>
+            <p className="text-sm font-semibold">Laporan Penjualan {period === 'weekly' ? 'Mingguan' : period === 'monthly' ? 'Bulanan' : 'Harian'}</p>
             <p className="text-xs text-gray-500 mt-1">
-              Tanggal Laporan: {formatDateShort(selectedDate)} | Waktu Cetak: {new Date().toLocaleString('id-ID')}
+              Periode: {report?.dateLabel || formatDateShort(selectedDate)} | Waktu Cetak: {new Date().toLocaleString('id-ID')}
             </p>
           </div>
 
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 no-print">
             <div>
-              <h1 className="text-2xl font-bold text-gray-50">Laporan Harian</h1>
-              <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-gray-400 text-sm">{formatDateShort(selectedDate)}</p>
-                {seedMessage && (
-                  <span className="text-xs text-amber-400 animate-fade-in font-medium">{seedMessage}</span>
-                )}
-              </div>
+              <h1 className="text-2xl font-bold text-gray-50">Laporan Penjualan</h1>
+              <p className="text-gray-400 text-sm">{report?.dateLabel || formatDateShort(selectedDate)}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleSeedDemo}
-                disabled={seedingDemo}
-                className="touch-btn bg-gray-900 hover:bg-gray-850 disabled:opacity-50 text-amber-400 hover:text-amber-300 border border-gray-800 hover:border-gray-700 rounded-xl px-4 py-2 text-xs font-bold transition-all flex items-center gap-1.5"
-                title="Buat Transaksi Simulasi"
-              >
-                {seedingDemo ? '⌛ Membuat...' : '⚡ Demo Data'}
-              </button>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              {/* Period Tabs */}
+              <div className="flex bg-gray-900 border border-gray-800 rounded-xl p-1">
+                {(['daily', 'weekly', 'monthly'] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPeriod(p)}
+                    className={`touch-btn py-1.5 px-3.5 rounded-lg text-xs font-bold transition-all ${
+                      period === p
+                        ? 'bg-amber-500 text-white shadow'
+                        : 'text-gray-400 hover:text-gray-200'
+                    }`}
+                  >
+                    {p === 'daily' ? 'Harian' : p === 'weekly' ? 'Mingguan' : 'Bulanan'}
+                  </button>
+                ))}
+              </div>
               <input
                 type="date"
                 value={selectedDate}
@@ -230,21 +208,14 @@ export default function LaporanPage() {
             </div>
           ) : !report ? null : (
             <>
-              {/* If no transactions, show a banner to generate demo data */}
+              {/* If no transactions, show a clean banner without seeder */}
               {report.totalTransactions === 0 && (
-                <div className="no-print glass-card border-amber-500/20 bg-amber-500/5 rounded-xl p-6 text-center space-y-3">
-                  <div className="text-3xl">📊</div>
-                  <h3 className="text-gray-100 font-bold text-sm">Belum Ada Transaksi</h3>
+                <div className="no-print glass-card border-gray-805 bg-gray-900/20 rounded-xl p-6 text-center space-y-1.5">
+                  <div className="text-2xl">📊</div>
+                  <h3 className="text-gray-100 font-semibold text-sm">Tidak Ada Transaksi</h3>
                   <p className="text-gray-400 text-xs max-w-md mx-auto leading-relaxed">
-                    Belum ada transaksi tercatat pada tanggal {formatDateShort(selectedDate)}. Anda bisa memasukkan data transaksi simulasi (dummy) untuk menguji tampilan laporan dan fitur ekspor.
+                    Belum ada transaksi tercatat pada periode laporan ini.
                   </p>
-                  <button
-                    onClick={handleSeedDemo}
-                    disabled={seedingDemo}
-                    className="touch-btn px-5 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5"
-                  >
-                    {seedingDemo ? '⌛ Memproses...' : '⚡ Buat Data Demo Transaksi'}
-                  </button>
                 </div>
               )}
               {/* Export & share actions (Hide on print) */}
