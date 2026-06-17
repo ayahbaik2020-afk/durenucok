@@ -25,6 +25,35 @@ export default function LaporanPage() {
   const [emailSentStatus, setEmailSentStatus] = useState<'IDLE' | 'SUCCESS' | 'ERROR'>('IDLE')
   const [emailSimulated, setEmailSimulated] = useState(false)
 
+  // Seed Demo States
+  const [seedingDemo, setSeedingDemo] = useState(false)
+  const [seedMessage, setSeedMessage] = useState('')
+
+  async function handleSeedDemo() {
+    setSeedingDemo(true)
+    setSeedMessage('')
+    try {
+      const res = await fetch(`/api/reports/seed-dummy?date=${selectedDate}`, {
+        method: 'POST',
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setSeedMessage('✅ ' + data.message)
+        fetchReport() // Refresh report data!
+      } else {
+        setSeedMessage('❌ ' + (data.error || 'Gagal membuat data demo'))
+      }
+    } catch {
+      setSeedMessage('❌ Terjadi kesalahan saat membuat data demo')
+    } finally {
+      setSeedingDemo(false)
+      // Auto clear message after 5 seconds
+      setTimeout(() => {
+        setSeedMessage('')
+      }, 5000)
+    }
+  }
+
   useEffect(() => {
     if (!isLoggedIn()) { router.replace('/kasir'); return }
     fetchReport()
@@ -168,14 +197,29 @@ export default function LaporanPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 no-print">
             <div>
               <h1 className="text-2xl font-bold text-gray-50">Laporan Harian</h1>
-              <p className="text-gray-400 text-sm">{formatDateShort(selectedDate)}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-gray-400 text-sm">{formatDateShort(selectedDate)}</p>
+                {seedMessage && (
+                  <span className="text-xs text-amber-400 animate-fade-in font-medium">{seedMessage}</span>
+                )}
+              </div>
             </div>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 text-sm focus:outline-none focus:border-amber-500"
-            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSeedDemo}
+                disabled={seedingDemo}
+                className="touch-btn bg-gray-900 hover:bg-gray-850 disabled:opacity-50 text-amber-400 hover:text-amber-300 border border-gray-800 hover:border-gray-700 rounded-xl px-4 py-2 text-xs font-bold transition-all flex items-center gap-1.5"
+                title="Buat Transaksi Simulasi"
+              >
+                {seedingDemo ? '⌛ Membuat...' : '⚡ Demo Data'}
+              </button>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-100 text-sm focus:outline-none focus:border-amber-500"
+              />
+            </div>
           </div>
 
           {loading ? (
@@ -186,6 +230,23 @@ export default function LaporanPage() {
             </div>
           ) : !report ? null : (
             <>
+              {/* If no transactions, show a banner to generate demo data */}
+              {report.totalTransactions === 0 && (
+                <div className="no-print glass-card border-amber-500/20 bg-amber-500/5 rounded-xl p-6 text-center space-y-3">
+                  <div className="text-3xl">📊</div>
+                  <h3 className="text-gray-100 font-bold text-sm">Belum Ada Transaksi</h3>
+                  <p className="text-gray-400 text-xs max-w-md mx-auto leading-relaxed">
+                    Belum ada transaksi tercatat pada tanggal {formatDateShort(selectedDate)}. Anda bisa memasukkan data transaksi simulasi (dummy) untuk menguji tampilan laporan dan fitur ekspor.
+                  </p>
+                  <button
+                    onClick={handleSeedDemo}
+                    disabled={seedingDemo}
+                    className="touch-btn px-5 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5"
+                  >
+                    {seedingDemo ? '⌛ Memproses...' : '⚡ Buat Data Demo Transaksi'}
+                  </button>
+                </div>
+              )}
               {/* Export & share actions (Hide on print) */}
               <div className="no-print grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Download Actions Card */}
