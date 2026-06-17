@@ -44,51 +44,84 @@ export default function LaporanPage() {
   const handleExportXLSX = () => {
     if (!report) return
 
-    // 1. Sheet Ringkasan
-    const ringkasanData = [
-      { Kategori: 'Periode Laporan', Nilai: report.dateLabel || formatDateShort(selectedDate) },
-      { Kategori: 'Total Pendapatan (Rp)', Nilai: report.totalRevenue },
-      { Kategori: 'Total Transaksi', Nilai: report.totalTransactions },
-      { Kategori: 'Rata-rata Pendapatan / Transaksi (Rp)', Nilai: report.totalTransactions ? report.totalRevenue / report.totalTransactions : 0 },
-      { Kategori: 'Jumlah Kasir Aktif', Nilai: report.perCashier.length },
+    const dateLabel = report.dateLabel || formatDateShort(selectedDate)
+    const reportPeriodLabel = period === 'weekly' ? 'Mingguan' : period === 'monthly' ? 'Bulanan' : 'Harian'
+
+    const aoa = [
+      ['🍧 DURENUCOK POS SYSTEM'],
+      [`Laporan Penjualan ${reportPeriodLabel}`],
+      [`Periode: ${dateLabel}`],
+      [`Waktu Cetak: ${new Date().toLocaleString('id-ID')}`],
+      [], // Empty separator
+      
+      ['💰 RINGKASAN PENJUALAN'],
+      ['Total Pendapatan (Omset)', report.totalRevenue],
+      ['Total Transaksi', report.totalTransactions],
+      ['Rata-rata Pendapatan / Transaksi', report.totalTransactions ? report.totalRevenue / report.totalTransactions : 0],
+      ['Jumlah Kasir Aktif', report.perCashier.length],
+      [], // Empty separator
+      
+      ['🏆 PRODUK TERLARIS'],
+      ['Peringkat', 'Nama Produk', 'Jumlah Terjual (Qty)', 'Total Pendapatan (Rp)'],
     ]
-    const wsRingkasan = XLSX.utils.json_to_sheet(ringkasanData)
 
-    // 2. Sheet Produk Terlaris
-    const produkData = report.topProducts.map((p, idx) => ({
-      Peringkat: idx + 1,
-      'Nama Produk': p.name,
-      'Jumlah Terjual (Qty)': p.totalQty,
-      'Total Pendapatan (Rp)': p.totalRevenue,
-    }))
-    const wsProduk = XLSX.utils.json_to_sheet(produkData)
+    report.topProducts.forEach((p, idx) => {
+      aoa.push([
+        idx + 1,
+        p.name,
+        p.totalQty,
+        p.totalRevenue
+      ])
+    })
+    if (report.topProducts.length === 0) {
+      aoa.push(['-', 'Belum ada data', '-', '-'])
+    }
+    
+    aoa.push([]) // Empty separator
+    aoa.push(['💳 METODE PEMBAYARAN'])
+    aoa.push(['Metode Pembayaran', 'Jumlah Transaksi', 'Total Nominal (Rp)'])
+    
+    report.paymentBreakdown.forEach((pb) => {
+      aoa.push([
+        pb.method,
+        pb.count,
+        pb.total
+      ])
+    })
+    if (report.paymentBreakdown.length === 0) {
+      aoa.push(['Belum ada data', '-', '-'])
+    }
 
-    // 3. Sheet Pembayaran
-    const pembayaranData = report.paymentBreakdown.map((pb) => ({
-      'Metode Pembayaran': pb.method,
-      'Jumlah Transaksi': pb.count,
-      'Total Nominal (Rp)': pb.total,
-    }))
-    const wsPembayaran = XLSX.utils.json_to_sheet(pembayaranData)
+    aoa.push([]) // Empty separator
+    aoa.push(['👤 KINERJA KASIR'])
+    aoa.push(['Nama Kasir', 'Jumlah Transaksi', 'Total Omset (Rp)'])
 
-    // 4. Sheet Kinerja Kasir
-    const kasirData = report.perCashier.map((c) => ({
-      'Nama Kasir': c.cashierName,
-      'Jumlah Transaksi': c.totalTransactions,
-      'Total Nominal (Rp)': c.totalRevenue,
-    }))
-    const wsKasir = XLSX.utils.json_to_sheet(kasirData)
+    report.perCashier.forEach((c) => {
+      aoa.push([
+        c.cashierName,
+        c.totalTransactions,
+        c.totalRevenue
+      ])
+    })
+    if (report.perCashier.length === 0) {
+      aoa.push(['Belum ada data', '-', '-'])
+    }
 
-    // Create workbook and append sheets
+    // Create workbook and worksheet
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, wsRingkasan, 'Ringkasan')
-    XLSX.utils.book_append_sheet(wb, wsProduk, 'Produk Terlaris')
-    XLSX.utils.book_append_sheet(wb, wsPembayaran, 'Metode Pembayaran')
-    XLSX.utils.book_append_sheet(wb, wsKasir, 'Kinerja Kasir')
+    const ws = XLSX.utils.aoa_to_sheet(aoa)
 
-    // Write file
-    const filenameLabel = period === 'weekly' ? 'Mingguan' : period === 'monthly' ? 'Bulanan' : 'Harian'
-    XLSX.writeFile(wb, `Laporan_${filenameLabel}_DurenUcok_${selectedDate}.xlsx`)
+    // Set column widths to prevent truncation
+    ws['!cols'] = [
+      { wch: 32 }, // Column A
+      { wch: 24 }, // Column B
+      { wch: 20 }, // Column C
+      { wch: 22 }  // Column D
+    ]
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Laporan Penjualan')
+
+    XLSX.writeFile(wb, `Laporan_${reportPeriodLabel}_DurenUcok_${selectedDate}.xlsx`)
   }
 
   const handleExportPDF = () => {

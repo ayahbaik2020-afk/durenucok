@@ -60,9 +60,9 @@ export default function POSPage() {
     <div className="h-screen flex flex-col bg-gray-950 overflow-hidden">
       <AppNavbar />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         {/* === LEFT: Products Panel === */}
-        <div className={`flex flex-col flex-1 overflow-hidden ${showCart ? 'hidden lg:flex' : 'flex'}`}>
+        <div className="flex flex-col flex-1 overflow-hidden">
 
           {/* Search + Category */}
           <div className="bg-gray-900 border-b border-gray-800 px-4 py-3 space-y-3">
@@ -133,7 +133,18 @@ export default function POSPage() {
         </div>
 
         {/* === RIGHT: Cart Panel === */}
-        <div className={`w-full lg:w-96 flex-shrink-0 flex flex-col border-l border-gray-800 bg-gray-900 ${showCart ? 'flex' : 'hidden lg:flex'}`}>
+        {/* Backdrop for mobile overlay */}
+        {showCart && (
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden"
+            onClick={() => setShowCart(false)}
+          />
+        )}
+        <div 
+          className={`fixed lg:relative top-0 right-0 h-full lg:h-auto z-50 lg:z-0 w-[85%] sm:w-[400px] lg:w-96 flex-shrink-0 flex flex-col bg-gray-900 border-l border-gray-800 shadow-2xl lg:shadow-none transition-transform duration-300 ${
+            showCart ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
+          }`}
+        >
 
           {/* Cart Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-800">
