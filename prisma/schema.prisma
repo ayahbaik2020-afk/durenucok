@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Cashier {
+  id        Int               @id @default(autoincrement())
+  name      String
+  pin       String
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  sessions  CashierSession[]
+  transactions Transaction[]
+}
+
+model CashierSession {
+  id           Int       @id @default(autoincrement())
+  cashier      Cashier   @relation(fields: [cashierId], references: [id])
+  cashierId    Int
+  startCash    Float
+  endCash      Float?
+  status       String    @default("OPEN")
+  openedAt     DateTime  @default(now())
+  closedAt     DateTime?
+  transactions Transaction[]
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  emoji    String
+  color    String
+  products Product[]
+}
+
+model Product {
+  id               Int               @id @default(autoincrement())
+  name             String
+  description      String?
+  price            Float
+  emoji            String            @default("🍧")
+  category         Category          @relation(fields: [categoryId], references: [id])
+  categoryId       Int
+  stock            Int?
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  transactionItems TransactionItem[]
+  stockWastes      StockWaste[]
+}
+
+model Transaction {
+  id              Int               @id @default(autoincrement())
+  invoiceNumber   String            @unique
+  cashier         Cashier           @relation(fields: [cashierId], references: [id])
+  cashierId       Int
+  session         CashierSession    @relation(fields: [sessionId], references: [id])
+  sessionId       Int
+  items           TransactionItem[]
+  subtotal        Float
+  discountAmount  Float             @default(0)
+  total           Float
+  paymentMethod   String
+  amountPaid      Float
+  change          Float             @default(0)
+  status          String            @default("COMPLETED")
+  note            String?
+  createdAt       DateTime          @default(now())
+}
+
+model TransactionItem {
+  id            Int         @id @default(autoincrement())
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  transactionId Int
+  product       Product     @relation(fields: [productId], references: [id])
+  productId     Int
+  productName   String
+  productPrice  Float
+  qty           Int
+  discount      Float       @default(0)
+  subtotal      Float
+}
+
+model StockWaste {
+  id        Int      @id @default(autoincrement())
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  qty       Int
+  reason    String
+  note      String?
+  createdAt DateTime @default(now())
+}
