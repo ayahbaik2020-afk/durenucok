@@ -6,7 +6,7 @@ const { PrismaPg } = require('@prisma/adapter-pg')
 const { Pool } = require('pg')
 require('dotenv').config()
 
-const connectionString = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL
+const connectionString = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL
 if (!connectionString) {
   throw new Error('Please define DATABASE_URL or DIRECT_DATABASE_URL in .env')
 }

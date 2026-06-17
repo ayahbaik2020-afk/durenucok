@@ -9,6 +9,6 @@ export default defineConfig({
   datasource: {
     url: env('DATABASE_URL'),
     // @ts-ignore
-    directUrl: env('DIRECT_DATABASE_URL'),
+    directUrl: env('DIRECT_DATABASE_URL') || env('DATABASE_URL_UNPOOLED'),
   },
 })
