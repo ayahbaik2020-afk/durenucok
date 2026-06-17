@@ -6,6 +6,7 @@ import { useSessionStore } from '@/store/sessionStore'
 import { DailyReport } from '@/types'
 import { formatRupiah, formatDateShort } from '@/lib/utils'
 import AppNavbar from '@/components/layout/AppNavbar'
+import * as XLSX from 'xlsx'
 
 const METHOD_ICONS: Record<string, string> = { CASH: '💵', QRIS: '📱', TRANSFER: '🏦' }
 
@@ -16,6 +17,13 @@ export default function LaporanPage() {
   const [report, setReport] = useState<DailyReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10))
+
+  // Send Report States
+  const [emailDest, setEmailDest] = useState('')
+  const [waDest, setWaDest] = useState('')
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [emailSentStatus, setEmailSentStatus] = useState<'IDLE' | 'SUCCESS' | 'ERROR'>('IDLE')
+  const [emailSimulated, setEmailSimulated] = useState(false)
 
   useEffect(() => {
     if (!isLoggedIn()) { router.replace('/kasir'); return }
@@ -32,6 +40,113 @@ export default function LaporanPage() {
     }
   }
 
+  const handleExportXLSX = () => {
+    if (!report) return
+
+    // 1. Sheet Ringkasan
+    const ringkasanData = [
+      { Kategori: 'Tanggal Laporan', Nilai: formatDateShort(selectedDate) },
+      { Kategori: 'Total Pendapatan (Rp)', Nilai: report.totalRevenue },
+      { Kategori: 'Total Transaksi', Nilai: report.totalTransactions },
+      { Kategori: 'Rata-rata Pendapatan / Transaksi (Rp)', Nilai: report.totalTransactions ? report.totalRevenue / report.totalTransactions : 0 },
+      { Kategori: 'Jumlah Kasir Aktif', Nilai: report.perCashier.length },
+    ]
+    const wsRingkasan = XLSX.utils.json_to_sheet(ringkasanData)
+
+    // 2. Sheet Produk Terlaris
+    const produkData = report.topProducts.map((p, idx) => ({
+      Peringkat: idx + 1,
+      'Nama Produk': p.name,
+      'Jumlah Terjual (Qty)': p.totalQty,
+      'Total Pendapatan (Rp)': p.totalRevenue,
+    }))
+    const wsProduk = XLSX.utils.json_to_sheet(produkData)
+
+    // 3. Sheet Pembayaran
+    const pembayaranData = report.paymentBreakdown.map((pb) => ({
+      'Metode Pembayaran': pb.method,
+      'Jumlah Transaksi': pb.count,
+      'Total Nominal (Rp)': pb.total,
+    }))
+    const wsPembayaran = XLSX.utils.json_to_sheet(pembayaranData)
+
+    // 4. Sheet Kinerja Kasir
+    const kasirData = report.perCashier.map((c) => ({
+      'Nama Kasir': c.cashierName,
+      'Jumlah Transaksi': c.totalTransactions,
+      'Total Nominal (Rp)': c.totalRevenue,
+    }))
+    const wsKasir = XLSX.utils.json_to_sheet(kasirData)
+
+    // Create workbook and append sheets
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, wsRingkasan, 'Ringkasan')
+    XLSX.utils.book_append_sheet(wb, wsProduk, 'Produk Terlaris')
+    XLSX.utils.book_append_sheet(wb, wsPembayaran, 'Metode Pembayaran')
+    XLSX.utils.book_append_sheet(wb, wsKasir, 'Kinerja Kasir')
+
+    // Write file
+    XLSX.writeFile(wb, `Laporan_Harian_DurenUcok_${selectedDate}.xlsx`)
+  }
+
+  const handleExportPDF = () => {
+    window.print()
+  }
+
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!report || !emailDest.trim()) return
+
+    setSendingEmail(true)
+    setEmailSentStatus('IDLE')
+    try {
+      const res = await fetch('/api/reports/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailDest,
+          reportData: report,
+          date: formatDateShort(selectedDate),
+        }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setEmailSentStatus('SUCCESS')
+        setEmailSimulated(data.simulated)
+      } else {
+        setEmailSentStatus('ERROR')
+      }
+    } catch {
+      setEmailSentStatus('ERROR')
+    } finally {
+      setSendingEmail(false)
+      // Auto reset status feedback after 6 seconds
+      setTimeout(() => {
+        setEmailSentStatus('IDLE')
+      }, 6000)
+    }
+  }
+
+  const handleSendWhatsApp = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!report || !waDest.trim()) return
+
+    // Clean phone number (remove +, spaces, leading 0 to 62)
+    let phone = waDest.replace(/\D/g, '')
+    if (phone.startsWith('0')) {
+      phone = '62' + phone.slice(1)
+    }
+    if (!phone.startsWith('62') && phone.length > 5) {
+      phone = '62' + phone
+    }
+
+    const reportText = `*LAPORAN HARIAN DURENUCOK*\nTanggal: ${formatDateShort(selectedDate)}\n\n*Ringkasan Penjualan:*\n• Total Omset: ${formatRupiah(report.totalRevenue)}\n• Total Transaksi: ${report.totalTransactions}\n• Rata-rata / Transaksi: ${formatRupiah(report.totalTransactions ? report.totalRevenue / report.totalTransactions : 0)}\n\n*Metode Pembayaran:*\n${report.paymentBreakdown.map(pb => `• ${pb.method}: ${pb.count}x (${formatRupiah(pb.total)})`).join('\n')}\n\n*Kinerja Kasir:*\n${report.perCashier.map(c => `• ${c.cashierName}: ${c.totalTransactions}x (${formatRupiah(c.totalRevenue)})`).join('\n')}\n\n*Produk Terlaris:*\n${report.topProducts.map((p, idx) => `${idx + 1}. ${p.name} (${p.totalQty}x)`).join('\n')}\n\n_Dikirim otomatis dari POS DurenUcok._`
+
+    const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(reportText)}`
+    window.open(url, '_blank')
+  }
+
   const maxQty = report?.topProducts?.[0]?.totalQty || 1
 
   return (
@@ -40,8 +155,17 @@ export default function LaporanPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-4 space-y-5">
 
+          {/* Print Only Header */}
+          <div className="hidden print:block mb-6 pb-4 border-b border-gray-300 text-black">
+            <h1 className="text-2xl font-bold">🍧 DurenUcok POS System</h1>
+            <p className="text-sm font-semibold">Laporan Omset Penjualan Harian</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Tanggal Laporan: {formatDateShort(selectedDate)} | Waktu Cetak: {new Date().toLocaleString('id-ID')}
+            </p>
+          </div>
+
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 no-print">
             <div>
               <h1 className="text-2xl font-bold text-gray-50">Laporan Harian</h1>
               <p className="text-gray-400 text-sm">{formatDateShort(selectedDate)}</p>
@@ -62,6 +186,100 @@ export default function LaporanPage() {
             </div>
           ) : !report ? null : (
             <>
+              {/* Export & share actions (Hide on print) */}
+              <div className="no-print grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Download Actions Card */}
+                <div className="glass-card rounded-xl p-5 flex flex-col justify-between space-y-3">
+                  <div>
+                    <h3 className="text-gray-50 font-semibold text-sm mb-1.5 flex items-center gap-1.5">
+                      💾 Ekspor Laporan
+                    </h3>
+                    <p className="text-gray-400 text-xs">Unduh laporan hari ini ke format berkas Excel atau cetak langsung ke PDF.</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleExportXLSX}
+                      className="touch-btn flex-1 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-100 hover:text-white border border-gray-700 flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors"
+                    >
+                      🟢 Excel (.xlsx)
+                    </button>
+                    <button
+                      onClick={handleExportPDF}
+                      className="touch-btn flex-1 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-100 hover:text-white border border-gray-700 flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors"
+                    >
+                      🔴 Cetak / PDF
+                    </button>
+                  </div>
+                </div>
+
+                {/* Share Actions Card */}
+                <div className="glass-card rounded-xl p-5">
+                  <h3 className="text-gray-50 font-semibold text-sm mb-3 flex items-center gap-1.5">
+                    🚀 Kirim Laporan
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    {/* Send Email Form */}
+                    <form onSubmit={handleSendEmail} className="flex gap-2">
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">📧</span>
+                        <input
+                          type="email"
+                          required
+                          placeholder="Kirim laporan ke email..."
+                          value={emailDest}
+                          onChange={(e) => setEmailDest(e.target.value)}
+                          className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-8 pr-3 py-2 text-gray-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={sendingEmail || !emailDest}
+                        className="touch-btn bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0"
+                      >
+                        {sendingEmail ? 'Mengirim...' : 'Kirim'}
+                      </button>
+                    </form>
+
+                    {/* Send WhatsApp Form */}
+                    <form onSubmit={handleSendWhatsApp} className="flex gap-2">
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">💬</span>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Nomor WhatsApp (e.g. 0812...)"
+                          value={waDest}
+                          onChange={(e) => setWaDest(e.target.value)}
+                          className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-8 pr-3 py-2 text-gray-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={!waDest}
+                        className="touch-btn bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0"
+                      >
+                        Kirim WA
+                      </button>
+                    </form>
+
+                    {/* Status feedback alerts */}
+                    {emailSentStatus === 'SUCCESS' && (
+                      <p className="text-[11px] text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-1.5 rounded-lg animate-fade-in leading-relaxed">
+                        {emailSimulated 
+                          ? '✅ Berhasil disimulasikan! Laporan dicetak di log server karena SMTP belum dikonfigurasi di file env.' 
+                          : '✅ Laporan sukses dikirim ke email!'}
+                      </p>
+                    )}
+                    {emailSentStatus === 'ERROR' && (
+                      <p className="text-[11px] text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1.5 rounded-lg animate-fade-in">
+                        ❌ Gagal mengirim laporan ke email. Silakan periksa koneksi.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* KPI Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="glass-card rounded-xl p-4 col-span-2 sm:col-span-1">
@@ -115,7 +333,7 @@ export default function LaporanPage() {
                             </span>
                             <div className="text-right flex-shrink-0">
                               <span className="text-amber-400 font-bold">{p.totalQty}x</span>
-                              <span className="text-gray-500 text-xs ml-2">{formatRupiah(p.totalRevenue)}</span>
+                              <span className="text-gray-505 text-xs ml-2">{formatRupiah(p.totalRevenue)}</span>
                             </div>
                           </div>
                           {/* Progress bar */}
@@ -148,7 +366,7 @@ export default function LaporanPage() {
                               <span className="text-xl">{METHOD_ICONS[pb.method] || '💳'}</span>
                               <div>
                                 <p className="text-gray-100 text-sm font-medium">{pb.method}</p>
-                                <p className="text-gray-500 text-xs">{pb.count} transaksi</p>
+                                <p className="text-gray-505 text-xs">{pb.count} transaksi</p>
                               </div>
                             </div>
                             <p className="text-amber-400 font-bold text-sm">{formatRupiah(pb.total)}</p>
@@ -175,10 +393,10 @@ export default function LaporanPage() {
                               </div>
                               <div>
                                 <p className="text-gray-100 text-sm font-medium">{c.cashierName}</p>
-                                <p className="text-gray-500 text-xs">{c.totalTransactions} transaksi</p>
+                                <p className="text-gray-550 text-xs">{c.totalTransactions} transaksi</p>
                               </div>
                             </div>
-                            <p className="text-green-400 font-bold text-sm">{formatRupiah(c.totalRevenue)}</p>
+                            <p className="text-amber-400 font-bold text-sm">{formatRupiah(c.totalRevenue)}</p>
                           </div>
                         ))}
                       </div>

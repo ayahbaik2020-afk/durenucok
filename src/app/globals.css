@@ -156,3 +156,46 @@ input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+/* Print Styles */
+@media print {
+  nav, button, input, select, .no-print, header, footer {
+    display: none !important;
+  }
+  
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  .max-w-4xl {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .glass-card {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    page-break-inside: avoid;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .text-white, .text-gray-50, .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-400 {
+    color: #111827 !important;
+  }
+
+  .text-amber-400, .text-green-400, .text-blue-400 {
+    color: #000000 !important;
+    font-weight: bold !important;
+  }
+
+  .bg-gray-950, .bg-gray-900, .bg-gray-900\/40, .bg-gray-800 {
+    background: #ffffff !important;
+  }
+}
