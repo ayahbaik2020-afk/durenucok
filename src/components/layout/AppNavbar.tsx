@@ -102,12 +102,20 @@ export default function AppNavbar() {
 
   async function handleCloseSession() {
     if (!session) return
-    if (!confirm('Tutup shift dan keluar?')) return
+    
+    // Tanyakan jumlah uang fisik di laci kasir saat ini
+    const userInput = prompt('Tutup shift dan keluar?\n\nBerapa jumlah uang fisik (Cash) di laci kasir saat ini?')
+    if (userInput === null) return // Jika klik Batal, hentikan proses keluar
+
+    // Bersihkan nilai input dari karakter non-numerik (seperti titik pemisah ribuan atau huruf)
+    const cleanValue = userInput.replace(/\D/g, '')
+    const endCash = parseFloat(cleanValue) || 0
+
     try {
       await fetch(`/api/sessions/${session.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endCash: 0 }),
+        body: JSON.stringify({ endCash }),
       })
     } catch {}
     clearSession()

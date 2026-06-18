@@ -13,11 +13,22 @@ export default function KasirPage() {
   const [cashiers, setCashiers] = useState<Cashier[]>([])
   const [selectedCashier, setSelectedCashier] = useState<Cashier | null>(null)
   const [pin, setPin] = useState('')
-  const [startCash, setStartCash] = useState('')
+  const [startCash, setStartCash] = useState('') // Menampung nilai terformat (misal: "100.000")
   const [step, setStep] = useState<'select' | 'pin' | 'cash'>('select')
   const [pinError, setPinError] = useState('')
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
+
+  // Fungsi memformat input string menjadi format ribuan dengan titik
+  function formatInputRibuan(value: string): string {
+    const cleanNumber = value.replace(/\D/g, '')
+    if (!cleanNumber) return ''
+    return new Intl.NumberFormat('id-ID').format(parseInt(cleanNumber))
+  }
+
+  function handleStartCashChange(val: string) {
+    setStartCash(formatInputRibuan(val))
+  }
 
   useEffect(() => {
     if (isLoggedIn()) {
@@ -71,16 +82,23 @@ export default function KasirPage() {
     }
   }
 
+  // Helper untuk membersihkan titik pemisah ribuan agar siap diparse ke float
+  function cleanFormattedNumber(val: string): number {
+    const cleanString = val.replace(/\./g, '')
+    return parseFloat(cleanString) || 0
+  }
+
   async function handleStartShift() {
     if (!selectedCashier) return
     setLoading(true)
     try {
+      const cleanCash = cleanFormattedNumber(startCash)
       const res = await fetch('/api/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cashierId: selectedCashier.id,
-          startCash: parseFloat(startCash) || 0,
+          startCash: cleanCash,
         }),
       })
       const session = await res.json()
@@ -232,9 +250,10 @@ export default function KasirPage() {
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">Rp</span>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={startCash}
-                    onChange={(e) => setStartCash(e.target.value)}
+                    onChange={(e) => handleStartCashChange(e.target.value)}
                     placeholder="0"
                     className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-12 pr-4 py-4 text-gray-100 text-lg font-semibold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
                     onKeyDown={(e) => e.key === 'Enter' && handleStartShift()}
@@ -242,7 +261,7 @@ export default function KasirPage() {
                 </div>
                 {startCash && (
                   <p className="text-amber-400 text-sm mt-2 text-right font-medium">
-                    {formatRupiah(parseFloat(startCash) || 0)}
+                    {formatRupiah(cleanFormattedNumber(startCash))}
                   </p>
                 )}
               </div>
@@ -252,7 +271,7 @@ export default function KasirPage() {
                 {[100000, 200000, 300000, 500000].map((amt) => (
                   <button
                     key={amt}
-                    onClick={() => setStartCash(String(amt))}
+                    onClick={() => handleStartCashChange(String(amt))}
                     className="touch-btn flex-1 min-w-[80px] py-2 rounded-lg bg-gray-800 hover:bg-amber-500/20 hover:border-amber-500/50 border border-gray-700 text-sm text-gray-300 hover:text-amber-400 transition-all"
                   >
                     {formatRupiah(amt)}
