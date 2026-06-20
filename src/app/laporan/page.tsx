@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSessionStore } from '@/store/sessionStore'
-import { DailyReport } from '@/types'
+import { DailyReport, StoreSetting } from '@/types'
 import { formatRupiah, formatDateShort } from '@/lib/utils'
 import AppNavbar from '@/components/layout/AppNavbar'
 import * as XLSX from 'xlsx'
@@ -15,6 +15,7 @@ export default function LaporanPage() {
   const { isLoggedIn } = useSessionStore()
 
   const [report, setReport] = useState<DailyReport | null>(null)
+  const [storeSetting, setStoreSetting] = useState<StoreSetting | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10))
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily')
@@ -25,6 +26,9 @@ export default function LaporanPage() {
   const [sendingEmail, setSendingEmail] = useState(false)
   const [emailSentStatus, setEmailSentStatus] = useState<'IDLE' | 'SUCCESS' | 'ERROR'>('IDLE')
   const [emailSimulated, setEmailSimulated] = useState(false)
+  const [stockReport, setStockReport] = useState<any>(null)
+  const receiptCost = (report as any)?.receiptCost || 0
+  const receiptQty = (report as any)?.receiptQty || 0
 
   useEffect(() => {
     if (!isLoggedIn()) { router.replace('/kasir'); return }
@@ -34,8 +38,14 @@ export default function LaporanPage() {
   async function fetchReport() {
     setLoading(true)
     try {
-      const res = await fetch(`/api/reports?date=${selectedDate}&period=${period}`)
-      setReport(await res.json())
+      const [reportRes, settingRes, stockRes] = await Promise.all([
+        fetch(`/api/reports?date=${selectedDate}&period=${period}`),
+        fetch('/api/store-settings'),
+        fetch(`/api/reports/stock-receipts?date=${selectedDate}&period=${period}`),
+      ])
+      setReport(await reportRes.json())
+      setStoreSetting(await settingRes.json())
+      setStockReport(await stockRes.json())
     } finally {
       setLoading(false)
     }
@@ -185,6 +195,41 @@ export default function LaporanPage() {
 
   const maxQty = report?.topProducts?.[0]?.totalQty || 1
 
+  const handleExportStockXLSX = () => {
+    if (!stockReport) return
+    const wb = XLSX.utils.book_new()
+
+    const summarySheet = XLSX.utils.aoa_to_sheet([
+      ['Laporan Stok Masuk'],
+      ['Periode', stockReport.period],
+      ['Tanggal', stockReport.date],
+      ['Total Receipt', stockReport.totalReceipts],
+      ['Total Qty', stockReport.totalQty],
+      ['Total Modal Historis', stockReport.totalCost],
+    ])
+    summarySheet['!cols'] = [{ wch: 24 }, { wch: 28 }]
+    XLSX.utils.book_append_sheet(wb, summarySheet, 'Ringkasan')
+
+    const supplierSheet = XLSX.utils.json_to_sheet(stockReport.bySupplier || [])
+    const warehouseSheet = XLSX.utils.json_to_sheet(stockReport.byWarehouse || [])
+    const productSheet = XLSX.utils.json_to_sheet(stockReport.byProduct || [])
+    const receiptSheet = XLSX.utils.json_to_sheet((stockReport.receipts || []).map((r: any) => ({
+      receiptNumber: r.receiptNumber,
+      date: r.receiptDate,
+      supplier: r.supplier?.name || '-',
+      warehouse: r.warehouse?.name || '-',
+      status: r.status,
+      totalAmount: r.totalAmount,
+    })))
+
+    XLSX.utils.book_append_sheet(wb, supplierSheet, 'Supplier')
+    XLSX.utils.book_append_sheet(wb, warehouseSheet, 'Gudang')
+    XLSX.utils.book_append_sheet(wb, productSheet, 'Produk')
+    XLSX.utils.book_append_sheet(wb, receiptSheet, 'Receipt')
+
+    XLSX.writeFile(wb, `StokMasuk_${period}_${selectedDate}.xlsx`)
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-950">
       <AppNavbar />
@@ -198,6 +243,9 @@ export default function LaporanPage() {
             <p className="text-xs text-gray-500 mt-1">
               Periode: {report?.dateLabel || formatDateShort(selectedDate)} | Waktu Cetak: {new Date().toLocaleString('id-ID')}
             </p>
+            {storeSetting?.address && <p className="text-xs text-gray-500">{storeSetting.address}</p>}
+            {storeSetting?.phone && <p className="text-xs text-gray-500">Telp: {storeSetting.phone}</p>}
+            <p className="text-xs text-gray-500 mt-1">Laporan ini memakai harga modal historis dari receipt.</p>
           </div>
 
           {/* Header */}
@@ -393,6 +441,65 @@ export default function LaporanPage() {
                   </div>
                   <p className="text-2xl font-bold text-blue-400">{report.perCashier.length}</p>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="glass-card rounded-xl p-4">
+                  <div className="text-gray-400 text-xs">Receipt Masuk</div>
+                  <div className="text-xl font-bold text-amber-400 mt-2">{stockReport?.totalReceipts || 0}</div>
+                </div>
+                <div className="glass-card rounded-xl p-4">
+                  <div className="text-gray-400 text-xs">Qty Masuk</div>
+                  <div className="text-xl font-bold text-green-400 mt-2">{stockReport?.totalQty || 0}</div>
+                </div>
+                <div className="glass-card rounded-xl p-4">
+                  <div className="text-gray-400 text-xs">Modal Historis</div>
+                  <div className="text-xl font-bold text-orange-400 mt-2">{formatRupiah(stockReport?.totalCost || 0)}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="glass-card rounded-xl p-5">
+                  <h2 className="text-gray-50 font-bold mb-4 flex items-center gap-2">?? Stok Masuk per Supplier</h2>
+                  {stockReport?.bySupplier?.length ? (
+                    <div className="space-y-3">
+                      {stockReport.bySupplier.map((row: any) => (
+                        <div key={row.supplier} className="flex items-center justify-between text-sm">
+                          <span className="text-gray-200">{row.supplier}</span>
+                          <span className="text-amber-400 font-semibold">{formatRupiah(row.totalCost)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <p className="text-gray-400 text-sm">Belum ada data</p>}
+                </div>
+                <div className="glass-card rounded-xl p-5">
+                  <h2 className="text-gray-50 font-bold mb-4 flex items-center gap-2">?? Stok Masuk per Gudang</h2>
+                  {stockReport?.byWarehouse?.length ? (
+                    <div className="space-y-3">
+                      {stockReport.byWarehouse.map((row: any) => (
+                        <div key={row.warehouse} className="flex items-center justify-between text-sm">
+                          <span className="text-gray-200">{row.warehouse}</span>
+                          <span className="text-green-400 font-semibold">{formatRupiah(row.totalCost)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <p className="text-gray-400 text-sm">Belum ada data</p>}
+                </div>
+              </div>
+
+              <div className="glass-card rounded-xl p-5">
+                <h2 className="text-gray-50 font-bold mb-4 flex items-center gap-2">?? Stok Masuk per Produk</h2>
+                {stockReport?.byProduct?.length ? (
+                  <div className="space-y-3">
+                    {stockReport.byProduct.map((row: any) => (
+                      <div key={row.product} className="grid grid-cols-3 gap-3 text-sm">
+                        <div className="text-gray-200 truncate">{row.product}</div>
+                        <div className="text-gray-400 text-right">Qty: {row.totalQty}</div>
+                        <div className="text-orange-400 font-semibold text-right">{formatRupiah(row.totalCost)}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : <p className="text-gray-400 text-sm">Belum ada data</p>}
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -81,3 +81,14 @@ export interface DailyReport {
   perCashier: { cashierName: string; totalTransactions: number; totalRevenue: number }[]
   paymentBreakdown: { method: string; count: number; total: number }[]
 }
+
+
+export interface StoreSetting {
+  id: number
+  name: string
+  logo?: string | null
+  address?: string | null
+  phone?: string | null
+  createdAt: string
+  updatedAt: string
+}

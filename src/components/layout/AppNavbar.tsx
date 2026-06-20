@@ -7,10 +7,15 @@ import { useSessionStore } from '@/store/sessionStore'
 import { useCartStore } from '@/store/cartStore'
 
 const navItems = [
-  { href: '/pos', label: 'Kasir', icon: '🏪' },
-  { href: '/history', label: 'Riwayat', icon: '📋' },
-  { href: '/stok', label: 'Stok', icon: '📦' },
-  { href: '/laporan', label: 'Laporan', icon: '📊' },
+  { href: '/pos', label: 'Kasir', icon: 'Kasir' },
+  { href: '/history', label: 'Riwayat', icon: 'Riwayat' },
+  { href: '/stok', label: 'Stok', icon: 'Stok' },
+  { href: '/stok/masuk', label: 'Stok Masuk', icon: 'Masuk' },
+  { href: '/stok/opname', label: 'Opname', icon: 'Opname' },
+  { href: '/supplier', label: 'Supplier', icon: 'Supplier' },
+  { href: '/gudang', label: 'Gudang', icon: 'Gudang' },
+  { href: '/laporan', label: 'Laporan', icon: 'Laporan' },
+  { href: '/pengaturan', label: 'Pengaturan', icon: 'Setting' },
 ]
 
 export default function AppNavbar() {

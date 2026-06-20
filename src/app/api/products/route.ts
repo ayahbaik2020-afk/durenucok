@@ -38,3 +38,30 @@ export async function POST(request: NextRequest) {
   })
   return Response.json(product, { status: 201 })
 }
+
+
+export async function PATCH(request: NextRequest) {
+  const body = await request.json()
+  const product = await prisma.product.update({
+    where: { id: Number(body.id) },
+    data: {
+      name: body.name,
+      description: body.description,
+      price: body.price,
+      emoji: body.emoji || '??',
+      image: body.image || null,
+      categoryId: body.categoryId,
+      stock: body.stock ?? null,
+      isActive: body.isActive ?? true,
+    },
+    include: { category: true },
+  })
+  return Response.json(product)
+}
+
+export async function DELETE(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const id = Number(searchParams.get('id'))
+  await prisma.product.delete({ where: { id } })
+  return Response.json({ ok: true })
+}

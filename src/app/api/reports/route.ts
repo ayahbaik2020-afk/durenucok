@@ -50,6 +50,14 @@ export async function GET(request: NextRequest) {
       include: { items: true, cashier: true },
     })
 
+    const receipts = await prisma.stockReceipt.findMany({
+      where: {
+        receiptDate: { gte: startDate, lte: endDate },
+        status: 'POSTED',
+      },
+      include: { items: true, supplier: true, warehouse: true },
+    })
+
     const totalRevenue = transactions.reduce((sum: number, t: any) => sum + t.total, 0)
     const totalTransactions = transactions.length
 
@@ -122,11 +130,18 @@ export async function GET(request: NextRequest) {
     }
     const dateLabel = formatDateLabel()
 
+    const receiptCost = receipts.reduce((sum, r) => sum + r.items.reduce((a, i) => a + i.subtotal, 0), 0)
+    const receiptQty = receipts.reduce((sum, r) => sum + r.items.reduce((a, i) => a + i.qty, 0), 0)
+    const storeSetting = await prisma.storeSetting.findFirst({ orderBy: { id: 'asc' } })
+
     return Response.json({
       date: dateStr,
       dateLabel,
+      storeSetting,
       totalTransactions,
       totalRevenue,
+      receiptQty,
+      receiptCost,
       topProducts,
       perCashier: Array.from(cashierMap.values()),
       paymentBreakdown: Array.from(paymentMap.values()),
