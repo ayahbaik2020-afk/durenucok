@@ -62,6 +62,9 @@ export default function StokPage() {
   const [prodActive, setProdActive] = useState(true)
   const [submittingProduct, setSubmittingProduct] = useState(false)
 
+  // Bundling configuration state: array of { productId: number, qty: number }
+  const [bundleItems, setBundleItems] = useState<{ productId: number; qty: number }[]>([])
+
   useEffect(() => {
     if (!isLoggedIn()) { router.replace('/kasir'); return }
     fetchData()
@@ -178,6 +181,7 @@ export default function StokPage() {
     setProdEmoji('🍧')
     setProdImage(null)
     setProdActive(true)
+    setBundleItems([])
     setShowProductModal(true)
   }
 
@@ -193,6 +197,12 @@ export default function StokPage() {
     setProdEmoji(product.emoji)
     setProdImage(product.image || null)
     setProdActive(product.isActive)
+    setBundleItems(
+      product.bundleItems?.map((item) => ({
+        productId: item.productId,
+        qty: item.qty,
+      })) || []
+    )
     setShowProductModal(true)
   }
 
@@ -213,6 +223,10 @@ export default function StokPage() {
     }
 
     setSubmittingProduct(true)
+    
+    // Find if the selected category is bundling (name 'Paket Bundling' or equivalent)
+    const isBundlingCategory = categories.find(c => c.id === prodCategoryId)?.name.toLowerCase().includes('bundling')
+
     const payload = {
       name: prodName,
       price: prodPrice,
@@ -220,7 +234,8 @@ export default function StokPage() {
       emoji: prodEmoji,
       image: prodImage,
       stock: isLimitedStock ? Number(prodStock) : null,
-      isActive: prodActive
+      isActive: prodActive,
+      bundleItems: isBundlingCategory ? bundleItems : undefined
     }
 
     try {
@@ -327,21 +342,21 @@ export default function StokPage() {
         <div className="max-w-4xl mx-auto p-4 space-y-4">
 
           {/* Header */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <div>
-              <h1 className="text-2xl font-bold text-gray-50">Kelola Produk & Stok</h1>
-              <p className="text-gray-400 text-sm">Kelola informasi produk, persediaan, dan pencatatan produk rusak/kadaluarsa.</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-50">Kelola Produk & Stok</h1>
+              <p className="text-gray-400 text-xs sm:text-sm">Kelola informasi produk, persediaan, dan pencatatan produk rusak/kadaluarsa.</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setShowWasteModal(true)}
-                className="touch-btn flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-sm font-medium transition-all"
+                className="touch-btn flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-xs sm:text-sm font-medium transition-all"
               >
                 🗑️ Catat Waste
               </button>
               <button
                 onClick={openAddProductModal}
-                className="touch-btn flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-sm font-bold shadow-lg transition-all"
+                className="touch-btn flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs sm:text-sm font-bold shadow-lg transition-all"
               >
                 ➕ Tambah Produk
               </button>
@@ -444,7 +459,7 @@ export default function StokPage() {
                     </div>
 
                     {/* Stock & Actions */}
-                    <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                       <div className="text-right hidden sm:block">
                         <span className={`inline-block text-xs font-medium px-2 py-1 rounded-lg border ${status.color}`}>
                           {status.label}
@@ -454,12 +469,21 @@ export default function StokPage() {
                         )}
                       </div>
 
+                      {/* Component breakdown for mobile if any bundle items exist */}
+                      {product.bundleItems && product.bundleItems.length > 0 && (
+                        <div className="block sm:hidden text-right mr-1">
+                          <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold">
+                            🎁 BUNDLE
+                          </span>
+                        </div>
+                      )}
+
                       {/* Inline Stock Adjustment buttons and direct input if limited stock */}
                       {hasLimitedStock ? (
                         <div className="flex items-center bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
                           <button
                             onClick={() => handleInlineStockUpdate(product.id, Math.max(0, (product.stock || 0) - 1))}
-                            className="px-2.5 py-1.5 hover:bg-gray-800 text-gray-400 hover:text-gray-100 transition-colors font-bold text-sm"
+                            className="px-2 py-1 hover:bg-gray-800 text-gray-400 hover:text-gray-100 transition-colors font-bold text-xs sm:text-sm"
                           >
                             -
                           </button>
@@ -490,23 +514,23 @@ export default function StokPage() {
                                 e.currentTarget.blur()
                               }
                             }}
-                            className="w-12 bg-transparent text-gray-100 text-sm font-semibold text-center focus:outline-none focus:bg-gray-800/80 py-1"
+                            className="w-8 sm:w-12 bg-transparent text-gray-100 text-xs sm:text-sm font-semibold text-center focus:outline-none focus:bg-gray-800/80 py-1"
                           />
 
                           <button
                             onClick={() => handleInlineStockUpdate(product.id, (product.stock || 0) + 1)}
-                            className="px-2.5 py-1.5 hover:bg-gray-800 text-gray-400 hover:text-gray-100 transition-colors font-bold text-sm"
+                            className="px-2 py-1 hover:bg-gray-800 text-gray-400 hover:text-gray-100 transition-colors font-bold text-xs sm:text-sm"
                           >
                             +
                           </button>
                         </div>
                       ) : (
-                        <span className="text-gray-500 text-sm italic mr-2">∞ Tanpa Batas</span>
+                        <span className="text-gray-500 text-xs sm:text-sm italic mr-1 sm:mr-2">∞ Bebas</span>
                       )}
 
                       <button
                         onClick={() => openEditProductModal(product)}
-                        className="touch-btn p-2.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 hover:text-amber-400 hover:border-amber-500/50 transition-all"
+                        className="touch-btn p-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 hover:text-amber-400 hover:border-amber-500/50 transition-all text-xs sm:text-sm"
                         title="Edit Produk"
                       >
                         ✏️
@@ -649,54 +673,131 @@ export default function StokPage() {
               </div>
 
               {/* Stock settings */}
-              <div>
-                <label className="text-gray-400 text-sm mb-2 block">Pengelolaan Stok</label>
-                <div className="grid grid-cols-2 gap-2 p-1 bg-gray-950 rounded-xl border border-gray-800 mb-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsLimitedStock(false)
-                      setProdStock('')
-                    }}
-                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                      !isLimitedStock
-                        ? 'bg-amber-500 text-white'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    Stok Tanpa Batas (∞)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsLimitedStock(true)
-                      setProdStock(0)
-                    }}
-                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                      isLimitedStock
-                        ? 'bg-amber-500 text-white'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    Stok Terbatas (Input)
-                  </button>
-                </div>
+              {(() => {
+                const isBundlingCategory = categories.find(c => c.id === prodCategoryId)?.name.toLowerCase().includes('bundling')
+                if (isBundlingCategory) {
+                  return (
+                    <div className="space-y-3 bg-gray-950 p-4 rounded-xl border border-gray-800 animate-scale-in">
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-gray-200 text-sm font-semibold">Komponen Bundling</label>
+                        <button
+                          type="button"
+                          onClick={() => setBundleItems([...bundleItems, { productId: products[0]?.id || 0, qty: 1 }])}
+                          className="text-xs bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30 px-2.5 py-1.5 rounded-lg transition-colors font-bold"
+                        >
+                          ➕ Tambah Item
+                        </button>
+                      </div>
 
-                {isLimitedStock && (
-                  <div className="animate-scale-in">
-                    <label className="text-gray-400 text-sm mb-1.5 block">Jumlah Stok Tersedia</label>
-                    <input
-                      type="number"
-                      required
-                      min={0}
-                      value={prodStock}
-                      onChange={(e) => setProdStock(e.target.value === '' ? '' : parseInt(e.target.value) || 0)}
-                      placeholder="Masukkan jumlah stok"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
-                    />
+                      {bundleItems.length === 0 ? (
+                        <p className="text-gray-500 text-xs italic text-center py-2">Belum ada item dalam bundling ini.</p>
+                      ) : (
+                        <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                          {bundleItems.map((item, idx) => (
+                            <div key={idx} className="flex gap-2 items-center">
+                              {/* Product selector */}
+                              <select
+                                value={item.productId}
+                                onChange={(e) => {
+                                  const updated = [...bundleItems]
+                                  updated[idx].productId = parseInt(e.target.value) || 0
+                                  setBundleItems(updated)
+                                }}
+                                className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500"
+                              >
+                                <option value={0}>Pilih Produk...</option>
+                                {products
+                                  .filter(p => p.id !== selectedProductId) // Prevent self-referencing in bundles
+                                  .map(p => (
+                                    <option key={p.id} value={p.id}>
+                                      {p.emoji} {p.name}
+                                    </option>
+                                  ))}
+                              </select>
+
+                              {/* Quantity */}
+                              <input
+                                type="number"
+                                min={1}
+                                value={item.qty}
+                                onChange={(e) => {
+                                  const updated = [...bundleItems]
+                                  updated[idx].qty = Math.max(1, parseInt(e.target.value) || 1)
+                                  setBundleItems(updated)
+                                }}
+                                className="w-16 bg-gray-900 border border-gray-700 rounded-lg px-2 py-2 text-white text-xs text-center focus:outline-none focus:border-amber-500 font-semibold"
+                                placeholder="Qty"
+                              />
+
+                              {/* Delete button */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setBundleItems(bundleItems.filter((_, i) => i !== idx))
+                                }}
+                                className="p-2 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-colors text-xs font-bold"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+
+                return (
+                  <div>
+                    <label className="text-gray-400 text-sm mb-2 block">Pengelolaan Stok</label>
+                    <div className="grid grid-cols-2 gap-2 p-1 bg-gray-950 rounded-xl border border-gray-800 mb-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsLimitedStock(false)
+                          setProdStock('')
+                        }}
+                        className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                          !isLimitedStock
+                            ? 'bg-amber-500 text-white'
+                            : 'text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        Stok Tanpa Batas (∞)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsLimitedStock(true)
+                          setProdStock(0)
+                        }}
+                        className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                          isLimitedStock
+                            ? 'bg-amber-500 text-white'
+                            : 'text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        Stok Terbatas (Input)
+                      </button>
+                    </div>
+
+                    {isLimitedStock && (
+                      <div className="animate-scale-in">
+                        <label className="text-gray-400 text-sm mb-1.5 block">Jumlah Stok Tersedia</label>
+                        <input
+                          type="number"
+                          required
+                          min={0}
+                          value={prodStock}
+                          onChange={(e) => setProdStock(e.target.value === '' ? '' : parseInt(e.target.value) || 0)}
+                          placeholder="Masukkan jumlah stok"
+                          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                )
+              })()}
 
               {/* Status Aktif (Hanya jika mode edit) */}
               {isEditMode && (
