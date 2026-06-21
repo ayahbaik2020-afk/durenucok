@@ -38,7 +38,7 @@ export default function StokPage() {
   const [selectedCatId, setSelectedCatId] = useState<number | 'ALL'>('ALL')
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL')
 
-  // Inline Stock Edit State (holds temporary stock values when user typing)
+  // Inline Stock Edit State
   const [editingStock, setEditingStock] = useState<{ [id: number]: string }>({})
 
   // Waste Modal State
@@ -46,7 +46,7 @@ export default function StokPage() {
   const [wasteForm, setWasteForm] = useState<WasteForm>({ productId: 0, qty: 1, reason: 'EXPIRED', note: '' })
   const [submittingWaste, setSubmittingWaste] = useState(false)
 
-  // Product Modal (Add/Edit) State
+  // Product Modal State
   const [showProductModal, setShowProductModal] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
@@ -62,7 +62,7 @@ export default function StokPage() {
   const [prodActive, setProdActive] = useState(true)
   const [submittingProduct, setSubmittingProduct] = useState(false)
 
-  // Bundling configuration state: array of { productId: number, qty: number }
+  // Bundling configuration
   const [bundleItems, setBundleItems] = useState<{ productId: number; qty: number }[]>([])
 
   useEffect(() => {
@@ -93,7 +93,7 @@ export default function StokPage() {
     }
   }
 
-  // Quick Inline Stock Update (only for products with limited stock)
+  // Quick Inline Stock Update
   async function handleInlineStockUpdate(productId: number, stock: number) {
     try {
       const prod = products.find(p => p.id === productId)
@@ -109,7 +109,6 @@ export default function StokPage() {
       })
       
       if (res.ok) {
-        // Optimistically update state to prevent flicker
         setProducts(prev =>
           prev.map(p => (p.id === productId ? { ...p, stock } : p))
         )
@@ -123,7 +122,7 @@ export default function StokPage() {
     }
   }
 
-  // Helper to compress and convert image to Base64 (max 400px, JPEG 70%)
+  // Convert image to Base64 (max 400px, JPEG 70%)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -167,7 +166,6 @@ export default function StokPage() {
     reader.readAsDataURL(file)
   }
 
-  // Handle opening Product Modal for Add
   function openAddProductModal() {
     setIsEditMode(false)
     setSelectedProductId(null)
@@ -185,7 +183,6 @@ export default function StokPage() {
     setShowProductModal(true)
   }
 
-  // Handle opening Product Modal for Edit
   function openEditProductModal(product: Product) {
     setIsEditMode(true)
     setSelectedProductId(product.id)
@@ -206,7 +203,6 @@ export default function StokPage() {
     setShowProductModal(true)
   }
 
-  // Handle Product Save
   async function handleProductSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!prodName.trim()) {
@@ -223,8 +219,6 @@ export default function StokPage() {
     }
 
     setSubmittingProduct(true)
-    
-    // Find if the selected category is bundling (name 'Paket Bundling' or equivalent)
     const isBundlingCategory = categories.find(c => c.id === prodCategoryId)?.name.toLowerCase().includes('bundling')
 
     const payload = {
@@ -269,7 +263,6 @@ export default function StokPage() {
     }
   }
 
-  // Handle Product Delete (Soft Delete)
   async function handleProductDelete() {
     if (!selectedProductId) return
     if (!confirm('Apakah Anda yakin ingin menonaktifkan produk ini? Produk tidak akan muncul lagi di POS.')) return
@@ -293,7 +286,6 @@ export default function StokPage() {
     }
   }
 
-  // Handle Waste Submit
   async function handleWasteSubmit() {
     setSubmittingWaste(true)
     try {
@@ -323,7 +315,6 @@ export default function StokPage() {
     return { label: 'Aman', color: 'text-green-400 bg-green-500/10 border-green-500/30' }
   }
 
-  // Filtered Products Calculation
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCatId === 'ALL' || p.categoryId === selectedCatId
@@ -336,27 +327,32 @@ export default function StokPage() {
   })
 
   return (
-    <div className="h-screen flex flex-col bg-gray-950">
+    <div className="h-screen flex flex-col bg-gray-950 overflow-hidden text-gray-150">
       <AppNavbar />
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-4 space-y-4">
+      
+      <div className="flex-1 overflow-y-auto scroll-smooth">
+        <div className="max-w-4xl mx-auto p-5 space-y-5">
 
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 pb-1">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-50">Kelola Produk & Stok</h1>
-              <p className="text-gray-400 text-xs sm:text-sm">Kelola informasi produk, persediaan, dan pencatatan produk rusak/kadaluarsa.</p>
+              <h1 className="text-2xl font-bold text-gray-50 tracking-tight">Kelola Produk & Stok</h1>
+              <p className="text-gray-500 text-sm mt-0.5">Kelola informasi katalog, persediaan, dan pencatatan waste/barang rusak.</p>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
+            
+            <div className="flex gap-2.5 w-full sm:w-auto">
               <button
                 onClick={() => setShowWasteModal(true)}
-                className="touch-btn flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-xs sm:text-sm font-medium transition-all"
+                className="touch-btn flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 hover:text-red-300 text-xs sm:text-sm font-semibold transition-all cursor-pointer"
+                style={{ minHeight: '44px' }}
               >
                 🗑️ Catat Waste
               </button>
+              
               <button
                 onClick={openAddProductModal}
-                className="touch-btn flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs sm:text-sm font-bold shadow-lg transition-all"
+                className="touch-btn flex-1 sm:flex-none flex items-center justify-center gap-2 px-4.5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-950/20 transition-all cursor-pointer"
+                style={{ minHeight: '44px' }}
               >
                 ➕ Tambah Produk
               </button>
@@ -364,59 +360,66 @@ export default function StokPage() {
           </div>
 
           {/* Search and Filters Bar */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-900/40 p-3 rounded-2xl border border-gray-800">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-900 border border-gray-800 p-4 rounded-2xl shadow-sm">
             {/* Search */}
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
               <input
                 type="text"
                 placeholder="Cari nama produk..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-9 pr-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-9 pr-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-gray-600"
               />
             </div>
 
-            {/* Category */}
-            <select
-              value={selectedCatId}
-              onChange={(e) => setSelectedCatId(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value))}
-              className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-amber-500 transition-colors"
-            >
-              <option value="ALL">Semua Kategori</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.emoji} {cat.name}
-                </option>
-              ))}
-            </select>
+            {/* Category selection */}
+            <div>
+              <select
+                value={selectedCatId}
+                onChange={(e) => setSelectedCatId(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value))}
+                className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all cursor-pointer"
+              >
+                <option value="ALL">Semua Kategori</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.emoji} {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            {/* Status */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-amber-500 transition-colors"
-            >
-              <option value="ALL">Semua Status (Aktif & Nonaktif)</option>
-              <option value="ACTIVE">Hanya Status Aktif</option>
-              <option value="INACTIVE">Hanya Status Nonaktif</option>
-            </select>
+            {/* Status selection */}
+            <div>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all cursor-pointer"
+              >
+                <option value="ALL">Semua Status (Aktif & Nonaktif)</option>
+                <option value="ACTIVE">Hanya Status Aktif</option>
+                <option value="INACTIVE">Hanya Status Nonaktif</option>
+              </select>
+            </div>
           </div>
 
-          {/* Product list */}
+          {/* Product List */}
           {loading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-16 rounded-xl bg-gray-900 animate-pulse border border-gray-800" />
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-16 rounded-2xl bg-gray-900 border border-gray-800 animate-pulse" />
               ))}
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-16 bg-gray-900/20 rounded-2xl border border-gray-900 border-dashed">
-              <span className="text-5xl">📦</span>
-              <p className="text-gray-400 mt-3 font-medium">Tidak ada produk yang cocok dengan filter</p>
+            <div className="text-center py-20 bg-gray-900/20 rounded-3xl border border-gray-800 border-dashed p-6 animate-fade-in">
+              <span className="text-5xl mb-4 block">📦</span>
+              <h3 className="text-gray-300 font-semibold text-base">Produk tidak ditemukan</h3>
+              <p className="text-gray-500 text-sm mt-1 max-w-xs mx-auto">
+                Silakan ubah filter pencarian Anda atau tambah produk baru untuk mulai mengisi stok.
+              </p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3 animate-slide-up">
               {filteredProducts.map((product) => {
                 const status = getStockStatus(product.stock)
                 const hasLimitedStock = product.stock !== null
@@ -425,13 +428,15 @@ export default function StokPage() {
                 return (
                   <div
                     key={product.id}
-                    className={`glass-card rounded-xl p-4 flex items-center justify-between gap-4 transition-all ${
-                      isInactive ? 'opacity-60 border-red-500/10' : ''
+                    className={`glass-card rounded-2xl p-4 flex items-center justify-between gap-4 transition-all border ${
+                      isInactive 
+                        ? 'opacity-50 border-red-500/10 bg-gray-900/30' 
+                        : 'bg-gray-900/60 border-gray-800 hover:border-gray-700'
                     }`}
                   >
-                    <div className="flex items-center gap-4 min-w-0 flex-1">
+                    <div className="flex items-center gap-3.5 min-w-0 flex-1">
                       {/* Image / Emoji */}
-                      <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-xl bg-gray-900 border border-gray-800 overflow-hidden shadow-inner">
+                      <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-xl bg-gray-950 border border-gray-800 overflow-hidden shadow-inner select-none">
                         {product.image ? (
                           <img
                             src={product.image}
@@ -439,51 +444,53 @@ export default function StokPage() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <span className="text-3xl">{product.emoji}</span>
+                          <span className="text-2xl">{product.emoji}</span>
                         )}
                       </div>
                       
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="text-gray-100 font-semibold text-sm truncate">{product.name}</p>
+                          <p className="text-gray-150 font-bold text-sm truncate">{product.name}</p>
                           {isInactive && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/20">
                               NONAKTIF
                             </span>
                           )}
                         </div>
-                        <p className="text-gray-500 text-xs mt-0.5">
-                          {product.category.emoji} {product.category.name} • {formatRupiah(product.price)}
+                        <p className="text-gray-500 text-xs mt-0.5 font-medium">
+                          {product.category.emoji} {product.category.name} • <span className="text-emerald-400 font-semibold font-mono">{formatRupiah(product.price)}</span>
                         </p>
                       </div>
                     </div>
 
-                    {/* Stock & Actions */}
-                    <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                    {/* Stock status & Quick actions */}
+                    <div className="flex items-center gap-3.5 flex-shrink-0">
+                      
+                      {/* Status stock badge (Desktop only) */}
                       <div className="text-right hidden sm:block">
-                        <span className={`inline-block text-xs font-medium px-2 py-1 rounded-lg border ${status.color}`}>
+                        <span className={`inline-block text-[10px] tracking-wide font-bold px-2.5 py-1 rounded-full border uppercase ${status.color}`}>
                           {status.label}
                         </span>
                         {hasLimitedStock && (
-                          <p className="text-gray-400 text-xs mt-1">Stok: {product.stock}</p>
+                          <p className="text-gray-500 text-[10px] font-semibold mt-1 font-mono">Stok: {product.stock}</p>
                         )}
                       </div>
 
-                      {/* Component breakdown for mobile if any bundle items exist */}
+                      {/* Bundling Badge for mobile devices */}
                       {product.bundleItems && product.bundleItems.length > 0 && (
                         <div className="block sm:hidden text-right mr-1">
-                          <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold">
-                            🎁 BUNDLE
+                          <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-bold uppercase">
+                            🎁 Paket
                           </span>
                         </div>
                       )}
 
-                      {/* Inline Stock Adjustment buttons and direct input if limited stock */}
+                      {/* Inline Stock Increment / Decrement controls */}
                       {hasLimitedStock ? (
-                        <div className="flex items-center bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+                        <div className="flex items-center bg-gray-950 border border-gray-800 rounded-xl overflow-hidden h-9">
                           <button
                             onClick={() => handleInlineStockUpdate(product.id, Math.max(0, (product.stock || 0) - 1))}
-                            className="px-2 py-1 hover:bg-gray-800 text-gray-400 hover:text-gray-100 transition-colors font-bold text-xs sm:text-sm"
+                            className="w-8 h-full hover:bg-gray-800 text-gray-500 hover:text-gray-150 transition-colors font-bold text-base cursor-pointer"
                           >
                             -
                           </button>
@@ -514,26 +521,29 @@ export default function StokPage() {
                                 e.currentTarget.blur()
                               }
                             }}
-                            className="w-8 sm:w-12 bg-transparent text-gray-100 text-xs sm:text-sm font-semibold text-center focus:outline-none focus:bg-gray-800/80 py-1"
+                            className="w-10 bg-transparent text-gray-100 text-xs font-bold text-center focus:outline-none focus:bg-gray-800/50 py-1 font-mono"
                           />
 
                           <button
                             onClick={() => handleInlineStockUpdate(product.id, (product.stock || 0) + 1)}
-                            className="px-2 py-1 hover:bg-gray-800 text-gray-400 hover:text-gray-100 transition-colors font-bold text-xs sm:text-sm"
+                            className="w-8 h-full hover:bg-gray-800 text-gray-500 hover:text-gray-150 transition-colors font-bold text-base cursor-pointer"
                           >
                             +
                           </button>
                         </div>
                       ) : (
-                        <span className="text-gray-500 text-xs sm:text-sm italic mr-1 sm:mr-2">∞ Bebas</span>
+                        <span className="text-gray-500 text-xs italic font-medium mr-1.5 select-none">∞ Bebas</span>
                       )}
 
+                      {/* Edit product button */}
                       <button
                         onClick={() => openEditProductModal(product)}
-                        className="touch-btn p-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 hover:text-amber-400 hover:border-amber-500/50 transition-all text-xs sm:text-sm"
+                        className="touch-btn w-9 h-9 rounded-xl bg-gray-850 hover:bg-gray-800 border border-gray-800 hover:border-emerald-500/50 text-gray-400 hover:text-emerald-400 flex items-center justify-center transition-all cursor-pointer"
                         title="Edit Produk"
                       >
-                        ✏️
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24">
+                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </button>
                     </div>
                   </div>
@@ -547,34 +557,36 @@ export default function StokPage() {
       {/* Product Add/Edit Modal */}
       {showProductModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={() => !submittingProduct && setShowProductModal(false)} />
+          <div className="absolute inset-0 bg-gray-950/75 backdrop-blur-sm" onClick={() => !submittingProduct && setShowProductModal(false)} />
           <div className="relative w-full max-w-lg bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden p-6 animate-scale-in max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-gray-50 mb-5">
-              {isEditMode ? '✏️ Edit Produk' : '➕ Tambah Produk'}
+            <h2 className="text-lg font-bold text-gray-50 mb-5">
+              {isEditMode ? '✏️ Edit Informasi Produk' : '➕ Tambah Produk Baru'}
             </h2>
 
             <form onSubmit={handleProductSubmit} className="space-y-4">
               {/* Name */}
               <div>
-                <label className="text-gray-400 text-sm mb-1.5 block">Nama Produk</label>
+                <label className="text-gray-450 text-xs font-semibold block mb-1.5">Nama Produk</label>
                 <input
                   type="text"
                   required
                   value={prodName}
                   onChange={(e) => setProdName(e.target.value)}
                   placeholder="Contoh: Pancake Durian Jumbo"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 text-sm focus:outline-none focus:border-amber-500"
+                  className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-gray-100 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-gray-600"
+                  style={{ minHeight: '44px' }}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Category */}
+                {/* Category selection */}
                 <div>
-                  <label className="text-gray-400 text-sm mb-1.5 block">Kategori</label>
+                  <label className="text-gray-455 text-xs font-semibold block mb-1.5">Kategori</label>
                   <select
                     value={prodCategoryId}
                     onChange={(e) => setProdCategoryId(parseInt(e.target.value))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-gray-100 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all cursor-pointer"
+                    style={{ minHeight: '44px' }}
                   >
                     {categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>
@@ -586,7 +598,7 @@ export default function StokPage() {
 
                 {/* Price */}
                 <div>
-                  <label className="text-gray-400 text-sm mb-1.5 block">Harga Jual (Rp)</label>
+                  <label className="text-gray-455 text-xs font-semibold block mb-1.5">Harga Jual (Rp)</label>
                   <input
                     type="number"
                     required
@@ -594,18 +606,19 @@ export default function StokPage() {
                     value={prodPrice || ''}
                     onChange={(e) => setProdPrice(parseInt(e.target.value) || 0)}
                     placeholder="Harga"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-gray-100 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-mono"
+                    style={{ minHeight: '44px' }}
                   />
                 </div>
               </div>
 
-              {/* Image Upload / Emoji Selection */}
+              {/* Image Upload / Emoji Selection preview */}
               <div className="space-y-3">
-                <label className="text-gray-400 text-sm mb-1.5 block">Gambar / Ikon Produk</label>
+                <label className="text-gray-455 text-xs font-semibold block">Gambar / Ikon Produk</label>
                 
                 <div className="flex gap-4 items-center bg-gray-950 border border-gray-850 p-4 rounded-xl">
                   {/* Selection Preview */}
-                  <div className="w-16 h-16 rounded-xl bg-gray-900 flex items-center justify-center text-3xl border border-gray-800 overflow-hidden flex-shrink-0 shadow-inner">
+                  <div className="w-16 h-16 rounded-xl bg-gray-900 flex items-center justify-center text-3xl border border-gray-800 overflow-hidden flex-shrink-0 shadow-inner select-none">
                     {prodImage ? (
                       <img src={prodImage} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
@@ -614,10 +627,10 @@ export default function StokPage() {
                   </div>
 
                   <div className="flex-1 space-y-2">
-                    <p className="text-xs text-gray-400 font-medium">Gunakan foto barang atau gunakan emoji sebagai ikon.</p>
+                    <p className="text-[11px] text-gray-500 font-medium">Unggah foto menu atau gunakan emoji standar sebagai ikon visual.</p>
                     <div className="flex gap-2">
                       {/* Image Input Label */}
-                      <label className="touch-btn cursor-pointer bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                      <label className="touch-btn cursor-pointer bg-gray-850 hover:bg-gray-800 text-white border border-gray-800 px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors">
                         📸 Upload Foto
                         <input
                           type="file"
@@ -632,7 +645,7 @@ export default function StokPage() {
                         <button
                           type="button"
                           onClick={() => setProdImage(null)}
-                          className="touch-btn bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                          className="touch-btn bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors"
                         >
                           ✕ Hapus Foto
                         </button>
@@ -641,9 +654,9 @@ export default function StokPage() {
                   </div>
                 </div>
 
-                {/* Popular Emojis Selector (Only visible if no custom image is set) */}
+                {/* Popular Emojis Selector */}
                 {!prodImage && (
-                  <div className="space-y-2 animate-scale-in">
+                  <div className="space-y-2.5 animate-scale-in">
                     <div className="flex gap-2 items-center">
                       <input
                         type="text"
@@ -651,7 +664,8 @@ export default function StokPage() {
                         value={prodEmoji}
                         onChange={(e) => setProdEmoji(e.target.value)}
                         placeholder="Kustom..."
-                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-amber-500 text-center"
+                        className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-emerald-500 text-center font-bold"
+                        style={{ minHeight: '40px' }}
                       />
                     </div>
                     <div className="grid grid-cols-8 gap-2 bg-gray-950 p-3 rounded-xl border border-gray-800 max-h-[100px] overflow-y-auto">
@@ -660,8 +674,8 @@ export default function StokPage() {
                           type="button"
                           key={emoji}
                           onClick={() => setProdEmoji(emoji)}
-                          className={`text-2xl p-1 rounded hover:bg-gray-800 transition-all ${
-                            prodEmoji === emoji ? 'bg-amber-500/20 border border-amber-500/50' : ''
+                          className={`text-xl p-1.5 rounded hover:bg-gray-800 transition-all cursor-pointer ${
+                            prodEmoji === emoji ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400' : ''
                           }`}
                         >
                           {emoji}
@@ -672,18 +686,18 @@ export default function StokPage() {
                 )}
               </div>
 
-              {/* Stock settings */}
+              {/* Stock Settings / Bundling Components */}
               {(() => {
                 const isBundlingCategory = categories.find(c => c.id === prodCategoryId)?.name.toLowerCase().includes('bundling')
                 if (isBundlingCategory) {
                   return (
-                    <div className="space-y-3 bg-gray-950 p-4 rounded-xl border border-gray-800 animate-scale-in">
+                    <div className="space-y-3.5 bg-gray-950 p-4 rounded-xl border border-gray-800 animate-scale-in">
                       <div className="flex justify-between items-center mb-1">
-                        <label className="text-gray-200 text-sm font-semibold">Komponen Bundling</label>
+                        <label className="text-gray-150 text-sm font-bold">Komponen Paket Bundling</label>
                         <button
                           type="button"
                           onClick={() => setBundleItems([...bundleItems, { productId: products[0]?.id || 0, qty: 1 }])}
-                          className="text-xs bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30 px-2.5 py-1.5 rounded-lg transition-colors font-bold"
+                          className="text-xs bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 px-3 py-1.5 rounded-lg transition-colors font-bold cursor-pointer"
                         >
                           ➕ Tambah Item
                         </button>
@@ -695,7 +709,7 @@ export default function StokPage() {
                         <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
                           {bundleItems.map((item, idx) => (
                             <div key={idx} className="flex gap-2 items-center">
-                              {/* Product selector */}
+                              {/* Product select */}
                               <select
                                 value={item.productId}
                                 onChange={(e) => {
@@ -703,11 +717,11 @@ export default function StokPage() {
                                   updated[idx].productId = parseInt(e.target.value) || 0
                                   setBundleItems(updated)
                                 }}
-                                className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500"
+                                className="flex-1 bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
                               >
                                 <option value={0}>Pilih Produk...</option>
                                 {products
-                                  .filter(p => p.id !== selectedProductId) // Prevent self-referencing in bundles
+                                  .filter(p => p.id !== selectedProductId) 
                                   .map(p => (
                                     <option key={p.id} value={p.id}>
                                       {p.emoji} {p.name}
@@ -725,17 +739,17 @@ export default function StokPage() {
                                   updated[idx].qty = Math.max(1, parseInt(e.target.value) || 1)
                                   setBundleItems(updated)
                                 }}
-                                className="w-16 bg-gray-900 border border-gray-700 rounded-lg px-2 py-2 text-white text-xs text-center focus:outline-none focus:border-amber-500 font-semibold"
+                                className="w-16 bg-gray-900 border border-gray-800 rounded-lg px-2 py-2 text-white text-xs text-center focus:outline-none focus:border-emerald-500 font-semibold font-mono"
                                 placeholder="Qty"
                               />
 
-                              {/* Delete button */}
+                              {/* Remove item */}
                               <button
                                 type="button"
                                 onClick={() => {
                                   setBundleItems(bundleItems.filter((_, i) => i !== idx))
                                 }}
-                                className="p-2 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-colors text-xs font-bold"
+                                className="p-2 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-colors text-xs font-bold cursor-pointer"
                               >
                                 ✕
                               </button>
@@ -749,21 +763,21 @@ export default function StokPage() {
 
                 return (
                   <div>
-                    <label className="text-gray-400 text-sm mb-2 block">Pengelolaan Stok</label>
-                    <div className="grid grid-cols-2 gap-2 p-1 bg-gray-950 rounded-xl border border-gray-800 mb-3">
+                    <label className="text-gray-455 text-xs font-semibold block mb-2">Pengelolaan Stok</label>
+                    <div className="grid grid-cols-2 gap-2.5 p-1 bg-gray-950 rounded-xl border border-gray-800 mb-3">
                       <button
                         type="button"
                         onClick={() => {
                           setIsLimitedStock(false)
                           setProdStock('')
                         }}
-                        className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                        className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                           !isLimitedStock
-                            ? 'bg-amber-500 text-white'
+                            ? 'bg-emerald-600 text-white shadow-sm'
                             : 'text-gray-400 hover:text-white'
                         }`}
                       >
-                        Stok Tanpa Batas (∞)
+                        Stok Bebas (∞)
                       </button>
                       <button
                         type="button"
@@ -771,9 +785,9 @@ export default function StokPage() {
                           setIsLimitedStock(true)
                           setProdStock(0)
                         }}
-                        className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                        className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                           isLimitedStock
-                            ? 'bg-amber-500 text-white'
+                            ? 'bg-emerald-600 text-white shadow-sm'
                             : 'text-gray-400 hover:text-white'
                         }`}
                       >
@@ -783,7 +797,7 @@ export default function StokPage() {
 
                     {isLimitedStock && (
                       <div className="animate-scale-in">
-                        <label className="text-gray-400 text-sm mb-1.5 block">Jumlah Stok Tersedia</label>
+                        <label className="text-gray-455 text-xs font-semibold block mb-1.5">Jumlah Stok Tersedia</label>
                         <input
                           type="number"
                           required
@@ -791,7 +805,8 @@ export default function StokPage() {
                           value={prodStock}
                           onChange={(e) => setProdStock(e.target.value === '' ? '' : parseInt(e.target.value) || 0)}
                           placeholder="Masukkan jumlah stok"
-                          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
+                          className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-mono"
+                          style={{ minHeight: '44px' }}
                         />
                       </div>
                     )}
@@ -799,51 +814,51 @@ export default function StokPage() {
                 )
               })()}
 
-              {/* Status Aktif (Hanya jika mode edit) */}
+              {/* Status Aktif toggles (Edit Mode Only) */}
               {isEditMode && (
-                <div className="flex items-center justify-between p-3 bg-gray-950/50 border border-gray-800 rounded-xl">
+                <div className="flex items-center justify-between p-3.5 bg-gray-950 border border-gray-800 rounded-xl">
                   <div>
-                    <p className="text-white text-sm font-semibold">Status Produk Aktif</p>
-                    <p className="text-gray-500 text-xs">Nonaktifkan untuk menyembunyikan dari daftar menu kasir.</p>
+                    <p className="text-white text-sm font-bold">Status Produk Aktif</p>
+                    <p className="text-gray-500 text-xs mt-0.5">Nonaktifkan untuk menyembunyikan produk ini dari kasir.</p>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={prodActive}
                       onChange={(e) => setProdActive(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute top-[2px] left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                    <div className="w-11 h-6 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute top-[2px] left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                   </label>
                 </div>
               )}
 
-              {/* Form buttons */}
+              {/* Action Form buttons */}
               <div className="flex gap-3 pt-2">
                 {isEditMode && (
                   <button
                     type="button"
                     onClick={handleProductDelete}
                     disabled={submittingProduct}
-                    className="touch-btn px-4 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 font-bold transition-all"
+                    className="touch-btn px-4.5 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 hover:text-red-300 font-bold transition-all cursor-pointer"
                   >
-                    🗑️ Hapus
+                    Hapus
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => setShowProductModal(false)}
                   disabled={submittingProduct}
-                  className="touch-btn flex-1 py-3 rounded-xl bg-gray-800 text-gray-300 font-medium"
+                  className="touch-btn flex-1 py-3 rounded-xl bg-gray-850 hover:bg-gray-800 border border-gray-800 text-gray-300 font-semibold cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={submittingProduct}
-                  className="touch-btn flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-bold transition-all disabled:opacity-50"
+                  className="touch-btn flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  {submittingProduct ? 'Menyimpan...' : '💾 Simpan'}
+                  {submittingProduct ? 'Menyimpan...' : 'Simpan Produk'}
                 </button>
               </div>
             </form>
@@ -854,18 +869,19 @@ export default function StokPage() {
       {/* Waste Modal */}
       {showWasteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={() => setShowWasteModal(false)} />
+          <div className="absolute inset-0 bg-gray-950/75 backdrop-blur-sm" onClick={() => setShowWasteModal(false)} />
           <div className="relative w-full max-w-md bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl p-6 animate-scale-in">
-            <h2 className="text-xl font-bold text-white mb-5">🗑️ Catat Waste</h2>
+            <h2 className="text-lg font-bold text-white mb-5">🗑️ Pencatatan Waste Produk</h2>
 
             <div className="space-y-4">
               {/* Product select */}
               <div>
-                <label className="text-gray-400 text-sm mb-1.5 block">Produk</label>
+                <label className="text-gray-455 text-xs font-semibold block mb-1.5">Pilih Produk</label>
                 <select
                   value={wasteForm.productId}
                   onChange={(e) => setWasteForm({...wasteForm, productId: parseInt(e.target.value)})}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
+                  className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all cursor-pointer"
+                  style={{ minHeight: '44px' }}
                 >
                   <option value={0}>Pilih produk...</option>
                   {products.filter(p => p.stock !== null).map((p) => (
@@ -876,20 +892,20 @@ export default function StokPage() {
 
               {/* Reason */}
               <div>
-                <label className="text-gray-400 text-sm mb-1.5 block">Alasan Waste</label>
-                <div className="grid grid-cols-3 gap-2">
+                <label className="text-gray-455 text-xs font-semibold block mb-1.5">Alasan Kerusakan / Kadaluarsa</label>
+                <div className="grid grid-cols-3 gap-2.5">
                   {WASTE_REASONS.map((r) => (
                     <button
                       key={r.id}
                       onClick={() => setWasteForm({...wasteForm, reason: r.id})}
-                      className={`touch-btn flex flex-col items-center gap-1 p-3 rounded-xl border transition-all text-sm ${
+                      className={`touch-btn flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-sm cursor-pointer ${
                         wasteForm.reason === r.id
-                          ? 'bg-red-500/20 border-red-500 text-red-400'
-                          : 'bg-gray-800 border-gray-700 text-gray-400'
+                          ? 'bg-red-500/10 border-red-500/40 text-red-400 font-bold'
+                          : 'bg-gray-950 border-gray-850 text-gray-500 hover:text-gray-300 hover:border-gray-800'
                       }`}
                     >
-                      <span>{r.icon}</span>
-                      <span className="text-xs">{r.label}</span>
+                      <span className="text-lg">{r.icon}</span>
+                      <span className="text-[10px] tracking-wide font-bold uppercase">{r.label}</span>
                     </button>
                   ))}
                 </div>
@@ -897,37 +913,44 @@ export default function StokPage() {
 
               {/* Qty */}
               <div>
-                <label className="text-gray-400 text-sm mb-1.5 block">Jumlah</label>
+                <label className="text-gray-455 text-xs font-semibold block mb-1.5">Jumlah Barang</label>
                 <input
                   type="number"
                   min={1}
                   value={wasteForm.qty}
                   onChange={(e) => setWasteForm({...wasteForm, qty: parseInt(e.target.value) || 1})}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
+                  className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-mono"
+                  style={{ minHeight: '44px' }}
                 />
               </div>
 
               {/* Note */}
               <div>
-                <label className="text-gray-400 text-sm mb-1.5 block">Catatan (opsional)</label>
+                <label className="text-gray-455 text-xs font-semibold block mb-1.5">Catatan Tambahan (opsional)</label>
                 <input
                   type="text"
                   value={wasteForm.note}
                   onChange={(e) => setWasteForm({...wasteForm, note: e.target.value})}
-                  placeholder="Keterangan tambahan..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
+                  placeholder="Contoh: Kemasan sobek / rusak saat bongkar muat..."
+                  className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-gray-600"
+                  style={{ minHeight: '44px' }}
                 />
               </div>
             </div>
 
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowWasteModal(false)} className="touch-btn flex-1 py-3 rounded-xl bg-gray-800 text-gray-300 font-medium">Batal</button>
+              <button 
+                onClick={() => setShowWasteModal(false)} 
+                className="touch-btn flex-1 py-3 rounded-xl bg-gray-850 hover:bg-gray-800 border border-gray-800 text-gray-300 font-semibold cursor-pointer"
+              >
+                Batal
+              </button>
               <button
                 onClick={handleWasteSubmit}
                 disabled={!wasteForm.productId || submittingWaste}
-                className="touch-btn flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-400 text-white font-bold transition-all disabled:opacity-50"
+                className="touch-btn flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold transition-all disabled:opacity-50 cursor-pointer"
               >
-                {submittingWaste ? 'Menyimpan...' : '🗑️ Catat'}
+                {submittingWaste ? 'Menyimpan...' : 'Catat Waste'}
               </button>
             </div>
           </div>
