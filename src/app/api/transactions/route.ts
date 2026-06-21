@@ -90,14 +90,38 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Reduce stock if product has stock set
+    // Reduce stock
     for (const item of items) {
-      const product = await tx.product.findUnique({ where: { id: item.productId } })
-      if (product && product.stock !== null) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: Math.max(0, product.stock - item.qty) },
-        })
+      // Find the product and check if it has bundle items inside
+      const product = await tx.product.findUnique({
+        where: { id: item.productId },
+        include: { bundleItems: true },
+      })
+
+      if (product) {
+        // If it is a bundle (has bundleItems), reduce stock of individual items inside
+        if (product.bundleItems && product.bundleItems.length > 0) {
+          for (const bundleItem of product.bundleItems) {
+            const componentProduct = await tx.product.findUnique({
+              where: { id: bundleItem.productId },
+            })
+            if (componentProduct && componentProduct.stock !== null) {
+              const reduceQty = bundleItem.qty * item.qty
+              await tx.product.update({
+                where: { id: bundleItem.productId },
+                data: { stock: Math.max(0, componentProduct.stock - reduceQty) },
+              })
+            }
+          }
+        }
+
+        // If the product itself has limited stock, reduce it too
+        if (product.stock !== null) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: Math.max(0, product.stock - item.qty) },
+          })
+        }
       }
     }
 

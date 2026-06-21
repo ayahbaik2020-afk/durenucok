@@ -15,7 +15,14 @@ export async function GET(request: NextRequest) {
         ? { name: { contains: search, mode: 'insensitive' } }
         : {}),
     },
-    include: { category: true },
+    include: {
+      category: true,
+      bundleItems: {
+        include: {
+          product: true,
+        },
+      },
+    },
     orderBy: { name: 'asc' },
   })
 

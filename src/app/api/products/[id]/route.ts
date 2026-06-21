@@ -9,7 +9,14 @@ export async function GET(
   const { id } = await params
   const product = await prisma.product.findUnique({
     where: { id: parseInt(id) },
-    include: { category: true },
+    include: {
+      category: true,
+      bundleItems: {
+        include: {
+          product: true,
+        },
+      },
+    },
   })
   if (!product) return Response.json({ error: 'Not found' }, { status: 404 })
   return Response.json(product)

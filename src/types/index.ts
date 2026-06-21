@@ -5,6 +5,14 @@ export interface Category {
   color: string
 }
 
+export interface BundleItem {
+  id: number
+  bundleId: number
+  productId: number
+  qty: number
+  product?: Product
+}
+
 export interface Product {
   id: number
   name: string
@@ -16,6 +24,7 @@ export interface Product {
   categoryId: number
   stock?: number | null
   isActive: boolean
+  bundleItems?: BundleItem[]
 }
 
 export interface CartItem {

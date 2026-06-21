@@ -36,6 +36,17 @@ model Category {
   products Product[]
 }
 
+model BundleItem {
+  id        Int     @id @default(autoincrement())
+  bundleId  Int
+  productId Int
+  qty       Int
+  bundle    Product @relation("BundleToItems", fields: [bundleId], references: [id], onDelete: Cascade)
+  product   Product @relation("ProductToBundleItems", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([bundleId, productId])
+}
+
 model Product {
   id               Int               @id @default(autoincrement())
   name             String
@@ -53,6 +64,10 @@ model Product {
   stockReceiptItems StockReceiptItem[]
   stockOpnameItems  StockOpnameItem[]
   stockMovements    StockMovement[]
+
+  // Relations for bundling
+  bundleItems       BundleItem[]       @relation("BundleToItems")
+  includedInBundles BundleItem[]       @relation("ProductToBundleItems")
 }
 
 model Transaction {

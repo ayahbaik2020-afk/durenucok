@@ -68,11 +68,20 @@ export default function ProductCard({ product }: ProductCardProps) {
         <p className="text-gray-500 text-xs mb-2">{product.category.emoji} {product.category.name}</p>
 
         {/* Stock indicator */}
-        {product.stock != null && (
+        {product.stock != null ? (
           <p className={`text-xs mb-2 ${product.stock <= 5 ? 'text-red-400' : 'text-gray-500'}`}>
             Stok: {product.stock}
           </p>
-        )}
+        ) : product.bundleItems && product.bundleItems.length > 0 ? (
+          <div className="text-[10px] text-gray-500 leading-tight mb-2">
+            <span className="font-semibold block text-amber-500/80 mb-0.5">Isi Bundling:</span>
+            {product.bundleItems.map((bi) => (
+              <div key={bi.id} className="truncate">
+                • {bi.product?.name} ({bi.qty}x)
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         {/* Price */}
         <div className="flex items-center justify-between">
