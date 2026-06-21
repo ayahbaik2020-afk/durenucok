@@ -18,6 +18,18 @@ export async function POST(request: NextRequest) {
         where: { id: productId },
         data: { stock: Math.max(0, product.stock - qty) },
       })
+      // Create stock movement
+      await tx.stockMovement.create({
+        data: {
+          productId,
+          type: 'WASTE',
+          refType: 'StockWaste',
+          refId: newWaste.id,
+          qtyIn: 0,
+          qtyOut: qty,
+          note: `Waste: ${reason} (${note || 'Tidak ada catatan'})`,
+        },
+      })
     }
     return newWaste
   })

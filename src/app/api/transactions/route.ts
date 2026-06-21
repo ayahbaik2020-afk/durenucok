@@ -111,6 +111,18 @@ export async function POST(request: NextRequest) {
                 where: { id: bundleItem.productId },
                 data: { stock: Math.max(0, componentProduct.stock - reduceQty) },
               })
+              // Create stock movement for the individual item inside bundle
+              await tx.stockMovement.create({
+                data: {
+                  productId: bundleItem.productId,
+                  type: 'SALE',
+                  refType: 'Transaction',
+                  refId: newTx.id,
+                  qtyIn: 0,
+                  qtyOut: reduceQty,
+                  note: `Penjualan bundle ${product.name} (Invoice: ${invoiceNumber})`,
+                },
+              })
             }
           }
         }
@@ -120,6 +132,18 @@ export async function POST(request: NextRequest) {
           await tx.product.update({
             where: { id: item.productId },
             data: { stock: Math.max(0, product.stock - item.qty) },
+          })
+          // Create stock movement for the product itself
+          await tx.stockMovement.create({
+            data: {
+              productId: item.productId,
+              type: 'SALE',
+              refType: 'Transaction',
+              refId: newTx.id,
+              qtyIn: 0,
+              qtyOut: item.qty,
+              note: `Penjualan ${product.name} (Invoice: ${invoiceNumber})`,
+            },
           })
         }
       }

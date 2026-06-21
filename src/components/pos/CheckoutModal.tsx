@@ -12,7 +12,7 @@ interface CheckoutModalProps {
 
 type PaymentMethod = 'CASH' | 'QRIS' | 'TRANSFER'
 
-const QUICK_AMOUNTS = [10000, 20000, 50000, 100000, 50000]
+const QUICK_AMOUNTS = [10000, 20000, 50000, 100000, 200000]
 
 export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps) {
   const { items, getSubtotal, getTotalDiscount, getTotal, clearCart } = useCartStore()
