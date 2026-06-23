@@ -210,9 +210,9 @@ export default function KasirPage() {
                 <p className="text-gray-400 text-sm">Masukkan PIN kamu</p>
               </div>
 
-              {/* PIN dots — fixed 6 dots since PIN not exposed to client */}
+              {/* PIN dots — 4 dots, PIN 4 digit */}
               <div className="flex justify-center gap-3 mb-4">
-                {Array.from({ length: 6 }).map((_, i) => (
+                {Array.from({ length: 4 }).map((_, i) => (
                   <div
                     key={i}
                     className={`w-4 h-4 rounded-full transition-all duration-200 ${
