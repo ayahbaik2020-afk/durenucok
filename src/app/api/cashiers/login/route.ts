@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyPin } from '@/lib/auth'
+import { verifyPin, hashPin } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +14,25 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: 'Kasir tidak ditemukan' }, { status: 404 })
     }
 
-    const valid = await verifyPin(pin, cashier.pin)
+    // Backward compat: if stored PIN is already hashed (starts with $2), verify with bcrypt
+    // Otherwise, do plaintext compare & upgrade to hash
+    const isHashed = cashier.pin.startsWith('$2')
+    let valid: boolean
+
+    if (isHashed) {
+      valid = await verifyPin(pin, cashier.pin)
+    } else {
+      valid = pin === cashier.pin
+      if (valid) {
+        // Upgrade plaintext PIN to hash
+        const hashed = await hashPin(pin)
+        await prisma.cashier.update({
+          where: { id: cashier.id },
+          data: { pin: hashed },
+        })
+      }
+    }
+
     if (!valid) {
       return Response.json({ error: 'PIN salah' }, { status: 401 })
     }
