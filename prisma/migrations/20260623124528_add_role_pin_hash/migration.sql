@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Cashier" ADD COLUMN     "role" TEXT NOT NULL DEFAULT 'KASIR';

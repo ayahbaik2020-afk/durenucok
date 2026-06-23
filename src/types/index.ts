@@ -49,6 +49,7 @@ export interface Cashier {
   id: number
   name: string
   pin: string
+  role: string
   isActive: boolean
 }
 
@@ -98,6 +99,7 @@ export interface StoreSetting {
   logo?: string | null
   address?: string | null
   phone?: string | null
+  backupDriveLink?: string | null
   createdAt: string
   updatedAt: string
 }

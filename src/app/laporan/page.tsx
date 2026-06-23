@@ -27,6 +27,8 @@ export default function LaporanPage() {
   const [emailSentStatus, setEmailSentStatus] = useState<'IDLE' | 'SUCCESS' | 'ERROR'>('IDLE')
   const [emailSimulated, setEmailSimulated] = useState(false)
   const [stockReport, setStockReport] = useState<any>(null)
+  const [backupStatus, setBackupStatus] = useState<'IDLE' | 'LOADING' | 'SUCCESS' | 'ERROR'>('IDLE')
+  const [backupLink, setBackupLink] = useState('')
   const receiptCost = (report as any)?.receiptCost || 0
   const receiptQty = (report as any)?.receiptQty || 0
 
@@ -171,6 +173,34 @@ export default function LaporanPage() {
         setEmailSentStatus('IDLE')
       }, 6000)
     }
+  }
+
+  async function handleBackup() {
+    setBackupStatus('LOADING')
+    setBackupLink('')
+    try {
+      const res = await fetch('/api/backup', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+
+      // Download the SQL file
+      const blob = new Blob([data.content], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = data.filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      setBackupStatus('SUCCESS')
+    } catch (e: any) {
+      console.error('Backup error:', e)
+      setBackupStatus('ERROR')
+      setBackupLink(e.message || 'Gagal backup')
+    }
+    setTimeout(() => setBackupStatus('IDLE'), 6000)
   }
 
   const handleSendWhatsApp = (e: React.FormEvent) => {
@@ -322,6 +352,33 @@ export default function LaporanPage() {
                     >
                       🔴 Cetak / PDF
                     </button>
+                  </div>
+                </div>
+
+                {/* Backup Card */}
+                <div className="glass-card rounded-xl p-5 flex flex-col justify-between space-y-3">
+                  <div>
+                    <h3 className="text-gray-50 font-semibold text-sm mb-1.5 flex items-center gap-1.5">
+                      💾 Backup Database
+                    </h3>
+                    <p className="text-gray-400 text-xs">Download seluruh data sebagai SQL. Bisa di-restore ke database mana pun.</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={handleBackup}
+                      disabled={backupStatus === 'LOADING'}
+                      className="touch-btn w-full py-2.5 rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-100 hover:text-white border border-gray-700 flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors disabled:opacity-50"
+                    >
+                      {backupStatus === 'LOADING' ? (
+                        <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Memproses...</>
+                      ) : '💾 Backup & Download (.sql)'}
+                    </button>
+                    {backupStatus === 'SUCCESS' && (
+                      <p className="text-[11px] text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-1.5 rounded-lg animate-fade-in">✅ Backup berhasil! File terunduh.</p>
+                    )}
+                    {backupStatus === 'ERROR' && (
+                      <p className="text-[11px] text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1.5 rounded-lg animate-fade-in">❌ Gagal: {backupLink}</p>
+                    )}
                   </div>
                 </div>
 

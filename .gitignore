@@ -44,3 +44,5 @@ next-env.d.ts
 
 # prisma
 prisma/dev.db*
+
+prisma/migrations/20260623123624_add_backup_drive_link/

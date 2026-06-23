@@ -10,6 +10,7 @@ model Cashier {
   id        Int               @id @default(autoincrement())
   name      String
   pin       String
+  role      String            @default("KASIR")
   isActive  Boolean           @default(true)
   createdAt DateTime          @default(now())
   sessions  CashierSession[]
@@ -203,11 +204,12 @@ model StockMovement {
 }
 
 model StoreSetting {
-  id          Int      @id @default(autoincrement())
-  name        String
-  logo        String?
-  address     String?
-  phone       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             Int      @id @default(autoincrement())
+  name           String
+  logo           String?
+  address        String?
+  phone          String?
+  backupDriveLink String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

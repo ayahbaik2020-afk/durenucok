@@ -26,8 +26,13 @@ async function main() {
   const bundling = await prisma.category.upsert({ where: { name: 'Paket Bundling' }, update: {}, create: { name: 'Paket Bundling', emoji: '🎁', color: '#EF4444' } })
   console.log('✅ 5 Categories seeded')
 
-  await prisma.cashier.upsert({ where: { id: 1 }, update: {}, create: { id: 1, name: 'Admin', pin: '1234' } })
-  await prisma.cashier.upsert({ where: { id: 2 }, update: {}, create: { id: 2, name: 'Sari', pin: '5678' } })
+  const bcrypt2 = require('bcryptjs')
+  const hash = (pin: string) => bcrypt2.hashSync(pin, 10)
+  const adminPin = hash('1234')
+  const sariPin = hash('5678')
+  // Use raw SQL since Prisma v7 blocks id in create with autoincrement
+  await prisma.$executeRawUnsafe("INSERT INTO \"Cashier\" (id, name, pin, role, \"isActive\", \"createdAt\") VALUES ($1, $2, $3, $4, true, NOW()) ON CONFLICT (id) DO UPDATE SET pin = EXCLUDED.pin, role = EXCLUDED.role", 1, 'Admin', adminPin, 'ADMIN')
+  await prisma.$executeRawUnsafe("INSERT INTO \"Cashier\" (id, name, pin, role, \"isActive\", \"createdAt\") VALUES ($1, $2, $3, $4, true, NOW()) ON CONFLICT (id) DO UPDATE SET pin = EXCLUDED.pin, role = EXCLUDED.role", 2, 'Sari', sariPin, 'KASIR')
   console.log('✅ Cashiers seeded')
 
   const productData = [
@@ -56,10 +61,10 @@ async function main() {
     await prisma.product.create({ data: p })
   }
 
-  console.log(`✅ ${productData.length} produk berhasil ditambahkan`)
-  console.log('\n🎉 Seeding selesai! DurenUcok POS siap digunakan.')
-  console.log('  - Admin (PIN: 1234)')
-  console.log('  - Sari  (PIN: 5678)')
+  console.log(`${productData.length} produk berhasil ditambahkan`)
+  console.log('Seeding selesai!')
+  console.log('  - Admin (ADMIN) PIN: 1234')
+  console.log('  - Sari  (KASIR)  PIN: 5678')
 }
 
 main()

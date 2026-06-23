@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     logo: body.logo ?? null,
     address: body.address ?? null,
     phone: body.phone ?? null,
+    backupDriveLink: body.backupDriveLink ?? null,
   }
   const setting = existing
     ? await prisma.storeSetting.update({ where: { id: existing.id }, data })

@@ -8,6 +8,10 @@ export async function GET() {
     include: { cashier: true },
     orderBy: { openedAt: 'desc' },
   })
+  if (session?.cashier) {
+    const { pin, ...cashier } = session.cashier
+    return Response.json({ ...session, cashier })
+  }
   return Response.json(session)
 }
 
@@ -31,5 +35,9 @@ export async function POST(request: NextRequest) {
     include: { cashier: true },
   })
 
+  if (session.cashier) {
+    const { pin, ...cashier } = session.cashier
+    return Response.json({ ...session, cashier }, { status: 201 })
+  }
   return Response.json(session, { status: 201 })
 }

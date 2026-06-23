@@ -5,8 +5,9 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSessionStore } from '@/store/sessionStore'
 import { useCartStore } from '@/store/cartStore'
+import { hasAccess } from '@/lib/auth'
 
-const navItems = [
+const allNavItems = [
   { href: '/pos', label: 'Kasir', icon: '🍧' },
   { href: '/history', label: 'Riwayat', icon: '📋' },
   { href: '/stok', label: 'Stok Produk', icon: '📦' },
@@ -24,6 +25,10 @@ export default function AppNavbar() {
   const { cashier, session, clearSession } = useSessionStore()
   const { getItemCount } = useCartStore()
   const cartCount = getItemCount()
+
+  const navItems = allNavItems.filter((item) =>
+    cashier ? hasAccess(cashier.role as any, item.href) : false
+  )
 
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)

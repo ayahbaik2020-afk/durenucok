@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { hashPin, verifyPin } from '@/lib/auth'
 
 export async function PUT(request: NextRequest) {
   try {
@@ -18,13 +19,15 @@ export async function PUT(request: NextRequest) {
       return Response.json({ error: 'Kasir tidak ditemukan' }, { status: 404 })
     }
 
-    if (cashier.pin !== oldPin) {
+    const valid = await verifyPin(oldPin, cashier.pin)
+    if (!valid) {
       return Response.json({ error: 'PIN lama salah' }, { status: 400 })
     }
 
+    const hashed = await hashPin(newPin)
     const updatedCashier = await prisma.cashier.update({
       where: { id: cashierId },
-      data: { pin: newPin },
+      data: { pin: hashed },
     })
 
     return Response.json({ 
@@ -33,7 +36,7 @@ export async function PUT(request: NextRequest) {
       cashier: {
         id: updatedCashier.id,
         name: updatedCashier.name,
-        pin: updatedCashier.pin,
+        role: updatedCashier.role,
         isActive: updatedCashier.isActive
       }
     })

@@ -61,24 +61,40 @@ export default function KasirPage() {
     if (pin.length >= 6) return
     const newPin = pin + digit
     setPin(newPin)
-    if (newPin.length === selectedCashier!.pin.length) {
+    if (newPin.length >= 4) {
       setTimeout(() => validatePin(newPin), 150)
     }
   }
 
-  function handlePinDelete() {
+  function handlePinBackspace() {
     setPin((p) => p.slice(0, -1))
     setPinError('')
   }
 
-  function validatePin(enteredPin: string) {
-    if (enteredPin === selectedCashier!.pin) {
+  async function validatePin(enteredPin: string) {
+    if (!selectedCashier) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/cashiers/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cashierId: selectedCashier.id, pin: enteredPin }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setSelectedCashier(data)
+        setPin('')
+        setPinError('')
+        setStep('cash')
+      } else {
+        setPinError('PIN salah. Coba lagi.')
+        setPin('')
+      }
+    } catch {
+      setPinError('Gagal terhubung ke server.')
       setPin('')
-      setPinError('')
-      setStep('cash')
-    } else {
-      setPinError('PIN salah. Coba lagi.')
-      setPin('')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -218,7 +234,7 @@ export default function KasirPage() {
                   <button
                     key={idx}
                     disabled={k === ''}
-                    onClick={() => k === '⌫' ? handlePinDelete() : k !== '' && handlePinInput(k)}
+                    onClick={() => k === '⌫' ? handlePinBackspace() : k !== '' && handlePinInput(k)}
                     className={`touch-btn h-14 rounded-xl text-xl font-semibold transition-all duration-150 ${
                       k === ''
                         ? 'invisible'

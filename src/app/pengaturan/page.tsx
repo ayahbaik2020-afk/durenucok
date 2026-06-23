@@ -8,6 +8,7 @@ export default function PengaturanPage() {
   const [logo, setLogo] = useState('')
   const [address, setAddress] = useState('')
   const [phone, setPhone] = useState('')
+  const [backupDriveLink, setBackupDriveLink] = useState('')
 
   useEffect(() => {
     fetch('/api/store-settings').then(r => r.json()).then(data => {
@@ -16,6 +17,7 @@ export default function PengaturanPage() {
         setLogo(data.logo || '')
         setAddress(data.address || '')
         setPhone(data.phone || '')
+        setBackupDriveLink(data.backupDriveLink || '')
       }
     })
   }, [])
@@ -24,7 +26,7 @@ export default function PengaturanPage() {
     await fetch('/api/store-settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, logo, address, phone }),
+      body: JSON.stringify({ name, logo, address, phone, backupDriveLink }),
     })
     alert('Pengaturan toko tersimpan')
   }
@@ -42,6 +44,8 @@ export default function PengaturanPage() {
           <input value={logo} onChange={e=>setLogo(e.target.value)} placeholder="URL logo / path logo" className="w-full bg-gray-800 rounded-xl px-4 py-3" />
           <textarea value={address} onChange={e=>setAddress(e.target.value)} placeholder="Alamat toko" className="w-full bg-gray-800 rounded-xl px-4 py-3 min-h-28" />
           <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Nomor telepon" className="w-full bg-gray-800 rounded-xl px-4 py-3" />
+          <input value={backupDriveLink} onChange={e=>setBackupDriveLink(e.target.value)} placeholder="Link folder Google Drive untuk backup" className="w-full bg-gray-800 rounded-xl px-4 py-3" />
+          <p className="text-gray-500 text-xs">Contoh: https://drive.google.com/drive/folders/xxxxx</p>
           <button onClick={save} className="px-4 py-2 rounded-xl bg-amber-500 text-white font-semibold">Simpan</button>
         </div>
       </main>
